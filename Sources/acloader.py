@@ -1,7 +1,7 @@
 
-import sys, pprint
+import sys
 
-pp = pprint.PrettyPrinter(indent=4)
+
 
 class ACFormatError(Exception): pass
 
@@ -123,8 +123,6 @@ if __name__ == "__main__":
 
   tmp = ACLoader(sys.argv[1])
 
-  print tmp.materials
-  print "-----";
-#  print tmp.objects
-
+  import pprint
+  pp = pprint.PrettyPrinter(indent=4)
   pp.pprint(tmp.objects)
