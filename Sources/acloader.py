@@ -44,7 +44,7 @@ class ACLoader:
 
   def __parseObject(self, line):
     if line.startswith('OBJECT'):
-      obj = { 'type': line.split()[1], 'loc': (0.0, 0.0, 0.0) }
+      obj = { 'type': line.split()[1], 'loc': (0.0, 0.0, 0.0) , 'verts': [], 'surfaces': [] }
       for line in self.file:
         line = line.strip()
         if line.startswith('name'):
