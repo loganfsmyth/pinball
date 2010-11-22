@@ -53,7 +53,7 @@ class ACLoader:
           num = int(line.split(' ', 1)[1])
           obj['data'] = self.file.read(num)
         elif line.startswith('texture'):
-          obj['texture'] = line.split(' ', 1)[1]
+          obj['texture'] = line.split(' ', 1)[1].strip('"')
         elif line.startswith('texrep'):
           obj['texrep'] = tuple([float(x) for x in line.split()[1:3]])
         elif line.startswith('rot'):
@@ -121,8 +121,10 @@ if __name__ == "__main__":
     print "Usage: acloader.py <filename>"
     sys.exit(0)
 
+  print "Loading %s" % sys.argv[1]
   tmp = ACLoader(sys.argv[1])
+  print "Loaded properly"
 
   import pprint
-  pp = pprint.PrettyPrinter(indent=4)
+  pp = pprint.PrettyPrinter(indent=2)
   pp.pprint(tmp.objects)

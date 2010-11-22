@@ -3,8 +3,11 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+import Image
 
 from acloader import *
+
+
 
 class ACRenderer:
   def __init__(self, filename, width = 800, height = 600):
@@ -24,16 +27,19 @@ class ACRenderer:
     glDepthFunc(GL_LESS)
     glEnable(GL_DEPTH_TEST)
     glShadeModel(GL_SMOOTH)
+    glEnable(GL_TEXTURE_2D)
 
     self.reshapeFunc(width, height)
 
+    print "Loading %s" % filename
     self.loaders = [ACObject(dat) for dat in ACLoader(filename).objects]
+    print "Completed loading"
 
   def displayFunc(self):
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)	# Clear The Screen And The Depth Buffer
     glLoadIdentity()
-    glTranslatef(0.0, 0.0, -10.0)
-    glRotated(45.0, 1.0, 1.0, 0.0)
+    glTranslatef(-350.0, 300.0, -1500.0)
+#    glRotated(45.0, 1.0, 1.0, 0.0)
     [l.render() for l in self.loaders]
     glutSwapBuffers()
     pass
@@ -45,13 +51,13 @@ class ACRenderer:
     self.width = w
     self.height = h
 
-    if h == 0:						# Prevent A Divide By Zero If The Window Is Too Small 
+    if h == 0:
       h = 1
 
-    glViewport(0, 0, w, h)		# Reset The Current Viewport And Perspective Transformation
+    glViewport(0, 0, w, h)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    gluPerspective(45.0, float(w)/float(h), 0.1, 100.0)
+    gluPerspective(45.0, float(w)/float(h), 0.1, 2000.0)
     glMatrixMode(GL_MODELVIEW)
 
 
@@ -66,24 +72,60 @@ class ACObject:
     self.location = data['loc']
     self.type = data['type']
     self.vertices = data['verts']
+    self.texture = 0
+#    if data.has_key('texture'):
+#      self.__loadTexture(data['texture'])
+    self.texfile =  data.has_key('texture') and data['texture'] or ''
+      
     self.surfaces = data['surfaces']
     self.subobjects = [ACObject(dat) for dat in data['kids']]
 
   def render(self):
-
     glTranslate(self.location[0], self.location[1], self.location[2])
 
-
+    if self.texfile:
+      self.__loadTexture(self.texfile)
+    else:
+      glTexImage2D(GL_TEXTURE_2D, 0, 3, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, ())
+#    print self.texture
+    
+#    glBindTexture(GL_TEXTURE_2D, self.texture)
+#    if data.has_key('texture'):
+#      self.__loadTexture(data['texture'])
+    
     for surface in self.surfaces:
       glBegin(GL_POLYGON)
       glColor3dv(surface['material']['rgb'])
       for ref in surface['refs']:
-        glVertex3dv(self.vertices[ref[0]])
         glTexCoord2d(ref[1], ref[2])
+        glVertex3dv(self.vertices[ref[0]])
       glEnd()
 
     [obj.render() for obj in self.subobjects]
     glTranslate(-1*self.location[0], -1*self.location[1], -1*self.location[2])
+
+  def __loadTexture(self, file):
+    try:
+      image = Image.open(file)
+    except:
+      print "Failed to load texture %s" % file
+      return
+    ix = image.size[0]
+    iy = image.size[1]
+    image = image.tostring("raw", "RGBX", 0, -1)
+
+#    glGenTextures(1, self.texture)
+#    glBindTexture(GL_TEXTURE_2D, self.texture)
+    glPixelStorei(GL_UNPACK_ALIGNMENT,1)
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, ix, iy, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+
 
 
 if __name__ == "__main__":
