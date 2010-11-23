@@ -38,12 +38,10 @@ class ACRenderer:
   def displayFunc(self):
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)	# Clear The Screen And The Depth Buffer
     glLoadIdentity()
-    glTranslatef(-350.0, 300.0, -1500.0)
-#    glRotated(45.0, 1.0, 1.0, 0.0)
+    glTranslatef(0.0, 0.0, -3.0)
+    glRotated(45.0, 1.0, 0.0, 0.0)
 
-    print "Rendering"
     [l.render() for l in self.loaders]
-    print "DONE"
     glutSwapBuffers()
     pass
 
@@ -60,7 +58,7 @@ class ACRenderer:
     glViewport(0, 0, w, h)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    gluPerspective(45.0, float(w)/float(h), 0.1, 2000.0)
+    gluPerspective(45.0, float(w)/float(h), 0.1, 200.0)
     glMatrixMode(GL_MODELVIEW)
 
 
