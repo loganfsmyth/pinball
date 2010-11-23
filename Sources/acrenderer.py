@@ -40,7 +40,10 @@ class ACRenderer:
     glLoadIdentity()
     glTranslatef(-350.0, 300.0, -1500.0)
 #    glRotated(45.0, 1.0, 1.0, 0.0)
+
+    print "Rendering"
     [l.render() for l in self.loaders]
+    print "DONE"
     glutSwapBuffers()
     pass
 
@@ -63,7 +66,7 @@ class ACRenderer:
 
 
   def keypressFunc(self, *args):
-    if args[0] == '\033':
+    if args[0] == '\033': # Escape key
       glutDestroyWindow(self.window)
       sys.exit()
 
@@ -73,26 +76,18 @@ class ACObject:
     self.type = data['type']
     self.vertices = data['verts']
     self.texture = 0
-#    if data.has_key('texture'):
-#      self.__loadTexture(data['texture'])
+    if data.has_key('texture'):
+      self.__loadTexture(data['texture'])
     self.texfile =  data.has_key('texture') and data['texture'] or ''
-      
+
     self.surfaces = data['surfaces']
     self.subobjects = [ACObject(dat) for dat in data['kids']]
 
   def render(self):
     glTranslate(self.location[0], self.location[1], self.location[2])
 
-    if self.texfile:
-      self.__loadTexture(self.texfile)
-    else:
-      glTexImage2D(GL_TEXTURE_2D, 0, 3, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, ())
-#    print self.texture
-    
-#    glBindTexture(GL_TEXTURE_2D, self.texture)
-#    if data.has_key('texture'):
-#      self.__loadTexture(data['texture'])
-    
+    glBindTexture(GL_TEXTURE_2D, self.texture)
+
     for surface in self.surfaces:
       glBegin(GL_POLYGON)
       glColor3dv(surface['material']['rgb'])
@@ -114,8 +109,8 @@ class ACObject:
     iy = image.size[1]
     image = image.tostring("raw", "RGBX", 0, -1)
 
-#    glGenTextures(1, self.texture)
-#    glBindTexture(GL_TEXTURE_2D, self.texture)
+    self.texture = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_2D, self.texture)
     glPixelStorei(GL_UNPACK_ALIGNMENT,1)
     glTexImage2D(GL_TEXTURE_2D, 0, 3, ix, iy, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
