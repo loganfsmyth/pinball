@@ -28,12 +28,27 @@ class ACRenderer:
     glEnable(GL_DEPTH_TEST)
     glShadeModel(GL_SMOOTH)
     glEnable(GL_TEXTURE_2D)
+#    glEnable(GL_LIGHTING)
 
     self.reshapeFunc(width, height)
 
-    print "Loading %s" % filename
-    self.loaders = [ACObject(dat) for dat in ACLoader(filename).objects]
-    print "Completed loading"
+    self.loaders = self.createObjects(ACLoader(filename).objects)
+
+  def createObjects(self, objs):
+    objects = []
+    for obj in objs:
+      inst = self.getObjectClass(obj)(obj)
+      inst.subobjects = self.createObjects(obj['kids'])
+      objects.append(inst)
+
+    return objects
+
+
+  def getObjectClass(self, data):
+    if data['type'] == 'light':
+      return ACLight
+    else:
+      return ACObject
 
   def displayFunc(self):
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)	# Clear The Screen And The Depth Buffer
@@ -79,15 +94,45 @@ class ACObject:
     self.texfile =  data.has_key('texture') and data['texture'] or ''
 
     self.surfaces = data['surfaces']
-    self.subobjects = [ACObject(dat) for dat in data['kids']]
+    self.subobjects = []
+
+    self.__processSurfaces()
+
+  def __processSurfaces(self):
+    nv = len(self.vertices)
+    if nv == 0:
+      return
+
+    x = y = z = 0
+    for v in self.vertices:
+      x += v[0]
+      y += v[1]
+      z += v[2]
+
+
+    self.centroid = ( x/nv, y/nv, z/nv )
+
+    for s in self.surfaces:
+      nv = len(s['refs'])
+      if nv > 2:
+        vs = self.vertices
+        s['norm'] = self.vecCross(self.vecSub(vs[0], vs[1]), self.vecSub(vs[0], vs[2]))
+
+  def vecSub(self, v1, v2):
+    return ( v1[0]-v2[0], v1[1]-v2[1], v1[2]-v2[2] )
+  def vecCross(self, v1, v2):
+    return ( v1[1]*v2[2] - v1[2]*v2[1], v1[2]*v2[0] - v1[0]*v2[2], v1[0]*v2[1] - v1[1]*v2[0])
 
   def render(self):
+    print self.type
+
     glTranslate(self.location[0], self.location[1], self.location[2])
 
     glBindTexture(GL_TEXTURE_2D, self.texture)
 
     for surface in self.surfaces:
       glBegin(GL_POLYGON)
+      if hasattr(surface, 'norm'): glNormal3dv(surface['norm'])
       glColor3dv(surface['material']['rgb'])
       for ref in surface['refs']:
         glTexCoord2d(ref[1], ref[2])
@@ -119,6 +164,16 @@ class ACObject:
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
 
+class ACLight(ACObject):
+  def __init__(self, data):
+    ACObject.__init__(self, data)
+    glLightfv(GL_LIGHT1, GL_AMBIENT, (1.0, 1.0, 1.0, 1.0))
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, (2.0, 2.0, 2.0, 2.0))
+    glLightfv(GL_LIGHT1, GL_POSITION, self.location)
+    glEnable(GL_LIGHT1)
+
+  def render(self):
+    pass
 
 
 if __name__ == "__main__":
