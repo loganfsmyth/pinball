@@ -1737,7 +1737,7 @@ refs 4
 49 1 1
 kids 0
 OBJECT poly
-name "peg5"
+name "peg"
 loc 0.272425 0.0458597 -0.797641
 crease 45.000000
 numvert 50
@@ -5328,7 +5328,7 @@ refs 3
 24 0 0
 kids 0
 OBJECT poly
-name "peg6"
+name "peg"
 loc 0.444469 0.0458597 -0.793981
 crease 45.000000
 numvert 50
@@ -5841,7 +5841,7 @@ refs 4
 49 1 1
 kids 0
 OBJECT poly
-name "peg3"
+name "peg"
 loc -0.0972871 0.0458597 -0.797641
 crease 45.000000
 numvert 50
@@ -6354,7 +6354,7 @@ refs 3
 24 0 0
 kids 0
 OBJECT poly
-name "peg7"
+name "peg"
 loc -0.282357 0.0458597 -0.0331609
 crease 45.000000
 numvert 50
@@ -6867,7 +6867,7 @@ refs 4
 49 1 1
 kids 0
 OBJECT poly
-name "peg2"
+name "peg"
 loc -0.287634 0.0458597 -0.793981
 crease 45.000000
 numvert 50
@@ -7380,7 +7380,7 @@ refs 3
 24 0 0
 kids 0
 OBJECT poly
-name "peg8"
+name "peg"
 loc 0.279277 0.0458597 -0.0410891
 crease 45.000000
 numvert 50
@@ -7893,7 +7893,7 @@ refs 4
 49 1 1
 kids 0
 OBJECT poly
-name "peg4"
+name "peg"
 loc 0.0930596 0.0458597 -0.797641
 crease 45.000000
 numvert 50
@@ -8406,7 +8406,7 @@ refs 3
 24 0 0
 kids 0
 OBJECT poly
-name "peg1"
+name "peg"
 loc -0.47798 0.0458597 -0.79032
 crease 45.000000
 numvert 50
@@ -15889,7 +15889,7 @@ refs 3
 82 0 0
 kids 0
 OBJECT poly
-name "peg9"
+name "peg"
 loc -0.000620351 0.0458597 0.845515
 crease 45.000000
 numvert 50
