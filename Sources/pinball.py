@@ -40,6 +40,7 @@ class Ball(ACObject):
     self.velocity = 0
 
   def update(self, time):
+    print "FPS: %f" % (1000000/time.microseconds)
     self.velocity -= time.microseconds*(math.tan(7*math.pi/180)*9.8)/1000000
     self.location[2] -= time.microseconds*self.velocity/1000000
 
