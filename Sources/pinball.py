@@ -1,4 +1,6 @@
 
+import math
+
 from acrenderer import *
 
 class Pinball(ACRenderer):
@@ -19,9 +21,7 @@ class Pinball(ACRenderer):
     return ACRenderer.getObjectClass(self, dat)
 
   def displayFunc(self):
-    print "Start rendering"
     ACRenderer.displayFunc(self)
-    print "Done"
 
 class Paddle(ACObject):
   def __init__(self, dat):
@@ -30,12 +30,18 @@ class Paddle(ACObject):
   def draw(self):
     angle = 50
 
-    glRotate(angle, 0.0, 1.0, 0.0);
+    glRotate(angle, 0.0, 1.0, 0.0)
     ACObject.draw(self)
-    glRotate(-1*angle, 0.0, 1.0, 0.0);
+    glRotate(-1*angle, 0.0, 1.0, 0.0)
 
 class Ball(ACObject):
-  pass
+  def __init__(self, dat):
+    ACObject.__init__(self, dat)
+    self.velocity = 0
+
+  def update(self, time):
+    self.velocity -= time.microseconds*(math.tan(7*math.pi/180)*9.8)/1000000
+    self.location[2] -= time.microseconds*self.velocity/1000000
 
 class Peg(ACObject):
   pass
@@ -48,3 +54,4 @@ class RubberTriangle(ACObject):
 if __name__ == '__main__':
   glutInit(sys.argv)
   Pinball().run()
+

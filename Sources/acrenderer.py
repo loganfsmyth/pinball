@@ -4,8 +4,10 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 import Image
+import datetime
 
 from acloader import *
+
 
 
 
@@ -17,11 +19,10 @@ class ACRenderer:
     glutInitWindowPosition(100, 100)
     self.window = glutCreateWindow(title)
 
-    glutDisplayFunc(self.displayFunc)
+#    glutDisplayFunc(self.displayFunc)
 #    glutIdleFunc(self.idleFunc)
     glutReshapeFunc(self.reshapeFunc)
     glutKeyboardFunc(self.keypressFunc)
-
     glClearColor(0.5, 0.5, 0.5, 0.0)
     glClearDepth(1.0)
     glDepthFunc(GL_LESS)
@@ -31,14 +32,27 @@ class ACRenderer:
 #    glEnable(GL_LIGHTING)
 
     self.reshapeFunc(width, height)
-
     self.loaders = self.createObjects(ACLoader(filename).objects)
+    self.counter = 0
+    self.currenttime = datetime.datetime.now()
+    self.animate(0)
 
-  def createObjects(self, objs):
+  def animate(self, arg):
+    print self.counter
+    self.counter += 1
+    time = datetime.datetime.now()
+    [l.update(time - self.currenttime) for l in self.loaders]
+    self.currenttime = time
+    self.displayFunc()
+    glutTimerFunc(10, self.animate, 0)
+
+
+  def createObjects(self, objs, parent=None):
     objects = []
     for obj in objs:
       inst = self.getObjectClass(obj)(obj)
-      inst.subobjects = self.createObjects(obj['kids'])
+      inst.parent = parent
+      inst.subobjects = self.createObjects(obj['kids'], inst)
       objects.append(inst)
 
     return objects
@@ -88,7 +102,7 @@ class ACRenderer:
 
 class ACObject:
   def __init__(self, data):
-    self.location = data['loc']
+    self.location = list(data['loc'])
     self.type = data['type']
     self.vertices = data['verts']
     self.texture = 0
@@ -127,14 +141,15 @@ class ACObject:
   def vecCross(self, v1, v2):
     return ( v1[1]*v2[2] - v1[2]*v2[1], v1[2]*v2[0] - v1[0]*v2[2], v1[0]*v2[1] - v1[1]*v2[0])
 
-  def render(self):
+  def update(self, time):
+    [obj.update(time) for obj in self.subobjects]
 
+  def render(self):
     glTranslate(self.location[0], self.location[1], self.location[2])
     if self.surfaces:
       self.draw()
     [obj.render() for obj in self.subobjects]
     glTranslate(-1*self.location[0], -1*self.location[1], -1*self.location[2])
-
 
   def draw(self):
     glBindTexture(GL_TEXTURE_2D, self.texture)
