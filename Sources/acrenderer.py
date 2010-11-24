@@ -10,12 +10,12 @@ from acloader import *
 
 
 class ACRenderer:
-  def __init__(self, filename, width = 800, height = 600):
+  def __init__(self, filename, width = 800, height = 600, title = "ACRenderer"):
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
     glutInitWindowSize(width, height)
     glutInitWindowPosition(100, 100)
-    self.window = glutCreateWindow("ACRenderer")
+    self.window = glutCreateWindow(title)
 
     glutDisplayFunc(self.displayFunc)
 #    glutIdleFunc(self.idleFunc)
@@ -100,6 +100,7 @@ class ACObject:
     self.subobjects = []
 
     self.__processSurfaces()
+    self.__genList()
 
   def __processSurfaces(self):
     nv = len(self.vertices)
@@ -129,14 +130,21 @@ class ACObject:
   def render(self):
 
     glTranslate(self.location[0], self.location[1], self.location[2])
-    self.draw()
+    if self.surfaces:
+      self.draw()
     [obj.render() for obj in self.subobjects]
     glTranslate(-1*self.location[0], -1*self.location[1], -1*self.location[2])
 
 
   def draw(self):
     glBindTexture(GL_TEXTURE_2D, self.texture)
+    glCallList(self.displaylist)
 
+  def __genList(self):
+
+    self.displaylist = glGenLists(1)
+
+    glNewList(self.displaylist, GL_COMPILE)
     for surface in self.surfaces:
       glBegin(GL_POLYGON)
       if hasattr(surface, 'norm'): glNormal3dv(surface['norm'])
@@ -145,6 +153,7 @@ class ACObject:
         glTexCoord2d(ref[1], ref[2])
         glVertex3dv(self.vertices[ref[0]])
       glEnd()
+    glEndList()
 
   def __loadTexture(self, file):
     try:

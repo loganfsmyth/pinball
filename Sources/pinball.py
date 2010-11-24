@@ -4,7 +4,7 @@ from acrenderer import *
 class Pinball(ACRenderer):
   
   def __init__(self):
-    ACRenderer.__init__(self, 'Pinball.ac')
+    ACRenderer.__init__(self, 'Pinball.ac', title="Pinball!!!")
   def getObjectClass(self, dat):
     if dat.has_key('name'):
       if dat['name'].startswith('paddle'):
@@ -18,6 +18,10 @@ class Pinball(ACRenderer):
 
     return ACRenderer.getObjectClass(self, dat)
 
+  def displayFunc(self):
+    print "Start rendering"
+    ACRenderer.displayFunc(self)
+    print "Done"
 
 class Paddle(ACObject):
   def __init__(self, dat):
