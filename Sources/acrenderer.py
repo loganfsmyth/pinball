@@ -83,6 +83,9 @@ class ACRenderer:
       glutDestroyWindow(self.window)
       sys.exit()
 
+  def run(self):
+    glutMainLoop()
+
 class ACObject:
   def __init__(self, data):
     self.location = data['loc']
@@ -124,10 +127,14 @@ class ACObject:
     return ( v1[1]*v2[2] - v1[2]*v2[1], v1[2]*v2[0] - v1[0]*v2[2], v1[0]*v2[1] - v1[1]*v2[0])
 
   def render(self):
-    print self.type
 
     glTranslate(self.location[0], self.location[1], self.location[2])
+    self.draw()
+    [obj.render() for obj in self.subobjects]
+    glTranslate(-1*self.location[0], -1*self.location[1], -1*self.location[2])
 
+
+  def draw(self):
     glBindTexture(GL_TEXTURE_2D, self.texture)
 
     for surface in self.surfaces:
@@ -138,9 +145,6 @@ class ACObject:
         glTexCoord2d(ref[1], ref[2])
         glVertex3dv(self.vertices[ref[0]])
       glEnd()
-
-    [obj.render() for obj in self.subobjects]
-    glTranslate(-1*self.location[0], -1*self.location[1], -1*self.location[2])
 
   def __loadTexture(self, file):
     try:
@@ -183,6 +187,5 @@ if __name__ == "__main__":
     print "Usage: acrenderer.py <filename>"
     sys.exit(0)
 
-  ACRenderer(sys.argv[1])
-
-  glutMainLoop()
+  ren = ACRenderer(sys.argv[1])
+  ren.run()
