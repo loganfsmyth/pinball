@@ -25,14 +25,16 @@ class Pinball(ACRenderer):
 
 class Paddle(ACObject):
   def __init__(self, dat):
+    self.angle = 0
     ACObject.__init__(self, dat)
 
-  def draw(self):
-    angle = 50
+  def update(self, time):
+    self.angle += time.microseconds/5000.0
 
-    glRotate(angle, 0.0, 1.0, 0.0)
+  def draw(self):
+    glRotate(self.angle, 0.0, 1.0, 0.0)
     ACObject.draw(self)
-    glRotate(-1*angle, 0.0, 1.0, 0.0)
+    glRotate(-1*self.angle, 0.0, 1.0, 0.0)
 
 class Ball(ACObject):
   def __init__(self, dat):
