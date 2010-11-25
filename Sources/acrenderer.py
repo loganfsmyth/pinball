@@ -5,6 +5,8 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 import Image
 import datetime
+import math
+
 
 from acloader import *
 
@@ -29,7 +31,7 @@ class ACRenderer:
     glEnable(GL_DEPTH_TEST)
     glShadeModel(GL_SMOOTH)
     glEnable(GL_TEXTURE_2D)
-#    glEnable(GL_LIGHTING)
+    glEnable(GL_LIGHTING)
 
     self.reshapeFunc(width, height)
     self.loaders = self.createObjects(ACLoader(filename).objects)
@@ -38,7 +40,7 @@ class ACRenderer:
     self.animate(0)
 
   def animate(self, arg):
-    print self.counter
+#    print self.counter
     self.counter += 1
     time = datetime.datetime.now()
     [l.update(time - self.currenttime) for l in self.loaders]
@@ -134,7 +136,22 @@ class ACObject:
       nv = len(s['refs'])
       if nv > 2:
         vs = self.vertices
-        s['norm'] = self.vecCross(self.vecSub(vs[0], vs[1]), self.vecSub(vs[0], vs[2]))
+        r = s['refs']
+
+
+        v0 = vs[r[0][0]]
+        v1 = vs[r[1][0]]
+        v2 = vs[r[2][0]]
+
+        vn1 = self.vecSub(v0, v1)
+        vn2 = self.vecSub(v0, v2)
+
+        n = self.vecCross(vn1, vn2)
+        s['norm'] = self.vecNorm(n)
+
+  def vecNorm(self, vec):
+    len = math.sqrt(sum([i**2 for i in vec]))
+    return tuple([i/len for i in vec])
 
   def vecSub(self, v1, v2):
     return ( v1[0]-v2[0], v1[1]-v2[1], v1[2]-v2[2] )
@@ -162,8 +179,17 @@ class ACObject:
     glNewList(self.displaylist, GL_COMPILE)
     for surface in self.surfaces:
       glBegin(GL_POLYGON)
-      if hasattr(surface, 'norm'): glNormal3dv(surface['norm'])
+      if surface.has_key('norm'):
+        glNormal3dv(surface['norm'])
+      mat = surface['material']
       glColor3dv(surface['material']['rgb'])
+
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  mat['rgb'] + (1,))
+      glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION,  mat['emis'] + (1,))
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  mat['amb'] + (1,))
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  mat['spec'] + (1,))
+      glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, mat['shi'])
+
       for ref in surface['refs']:
         glTexCoord2d(ref[1], ref[2])
         glVertex3dv(self.vertices[ref[0]])
@@ -195,8 +221,9 @@ class ACObject:
 class ACLight(ACObject):
   def __init__(self, data):
     ACObject.__init__(self, data)
-    glLightfv(GL_LIGHT1, GL_AMBIENT, (1.0, 1.0, 1.0, 1.0))
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, (2.0, 2.0, 2.0, 2.0))
+    glLightfv(GL_LIGHT1, GL_AMBIENT, (0.2, 0.2, 0.2, 1.0))
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, (0.7, 0.7, 0.7, 1.0))
+    glLightfv(GL_LIGHT1, GL_SPECULAR, (1.0, 1.0, 1.0, 1.0))
     glLightfv(GL_LIGHT1, GL_POSITION, self.location)
     glEnable(GL_LIGHT1)
 

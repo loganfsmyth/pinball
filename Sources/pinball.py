@@ -4,7 +4,6 @@ import math
 from acrenderer import *
 
 class Pinball(ACRenderer):
-  
   def __init__(self):
     ACRenderer.__init__(self, 'Pinball.ac', title="Pinball!!!")
   def getObjectClass(self, dat):
@@ -29,7 +28,7 @@ class Paddle(ACObject):
     ACObject.__init__(self, dat)
 
   def update(self, time):
-    self.angle += time.microseconds/5000.0
+    self.angle += time.microseconds/20000.0
 
   def draw(self):
     glRotate(self.angle, 0.0, 1.0, 0.0)
