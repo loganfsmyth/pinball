@@ -52,7 +52,7 @@ class ACRenderer:
   def createObjects(self, objs, parent=None):
     objects = []
     for obj in objs:
-      inst = self.getObjectClass(obj)(obj)
+      inst = self.getObjectClass(obj)(obj, self)
       inst.parent = parent
       inst.subobjects = self.createObjects(obj['kids'], inst)
       objects.append(inst)
@@ -92,10 +92,8 @@ class ACRenderer:
     gluPerspective(45.0, float(w)/float(h), 0.1, 200.0)
     glMatrixMode(GL_MODELVIEW)
 
-
-
-  def keypressFunc(self, *args):
-    if args[0] == '\033': # Escape key
+  def keypressFunc(self, key, x, y):
+    if key == '\033': # Escape key
       glutDestroyWindow(self.window)
       sys.exit()
 
@@ -103,7 +101,9 @@ class ACRenderer:
     glutMainLoop()
 
 class ACObject:
-  def __init__(self, data):
+  def __init__(self, data, renderer):
+    self.renderer = renderer
+    self.moving = False
     self.location = list(data['loc'])
     self.type = data['type']
     self.vertices = data['verts']
@@ -219,8 +219,8 @@ class ACObject:
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
 
 class ACLight(ACObject):
-  def __init__(self, data):
-    ACObject.__init__(self, data)
+  def __init__(self, data, r):
+    ACObject.__init__(self, data, r)
     glLightfv(GL_LIGHT1, GL_AMBIENT, (0.2, 0.2, 0.2, 1.0))
     glLightfv(GL_LIGHT1, GL_DIFFUSE, (0.7, 0.7, 0.7, 1.0))
     glLightfv(GL_LIGHT1, GL_SPECULAR, (1.0, 1.0, 1.0, 1.0))
