@@ -8,6 +8,16 @@ class Pinball(ACRenderer):
     self.keypress = []
     ACRenderer.__init__(self, 'Pinball.ac', title="Pinball!!!")
 
+    glLightfv(GL_LIGHT2, GL_AMBIENT, (0.2, 0.2, 0.2, 1.0))
+    glLightfv(GL_LIGHT2, GL_DIFFUSE, (0.5, 0.5, 0.5, 1.0))
+    glLightfv(GL_LIGHT2, GL_SPECULAR, (1.0, 1.0, 1.0, 1.0))
+    glLightfv(GL_LIGHT2, GL_POSITION, (0, 4.24, 4.24))
+    glEnable(GL_LIGHT2)
+
+  def render(self): 
+    glTranslatef(0.0, 0.0, -3.0)
+    glRotated(45.0, 1.0, 0.0, 0.0)
+    ACRenderer.render(self)
 
   def getObjectClass(self, dat):
     if dat.has_key('name'):
@@ -25,9 +35,9 @@ class Pinball(ACRenderer):
   def displayFunc(self):
     ACRenderer.displayFunc(self)
 
-  def keypressFunc(self, key, x, y):
-    [f(key, x, y) for f in self.keypress]
-    ACRenderer.keypressFunc(self, key, x, y)
+  def keyFunc(self, direction, key, x, y):
+    [f(direction, key, x, y) for f in self.keypress]
+    ACRenderer.keyFunc(self, direction, key, x, y)
 
 class Paddle(ACObject):
   def __init__(self, dat, r):
@@ -39,9 +49,9 @@ class Paddle(ACObject):
 
     ACObject.__init__(self, dat, r)
 
-  def keyPress(self, key, x, r):
+  def keyPress(self, dir, key, x, r):
     if (key == 'z' and self.side == 1) or (key == '/' and self.side == -1):
-      self.direction = 1
+      self.direction = -1*dir
 
   def update(self, time):
     if (self.angle < self.max_angle and self.direction == 1) or (self.angle > 0 and self.direction == -1):
@@ -60,7 +70,7 @@ class Ball(ACObject):
   def update(self, time):
 #    print "FPS: %f" % (1000000/time.microseconds)
     self.velocity -= time.microseconds*(math.tan(7*math.pi/180)*6.0)/1000000
-    self.location[2] -= time.microseconds*self.velocity/1000000
+#    self.location[2] -= time.microseconds*self.velocity/1000000
 
 class Peg(ACObject):
   pass

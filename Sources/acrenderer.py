@@ -24,7 +24,8 @@ class ACRenderer:
 #    glutDisplayFunc(self.displayFunc)
 #    glutIdleFunc(self.idleFunc)
     glutReshapeFunc(self.reshapeFunc)
-    glutKeyboardFunc(self.keypressFunc)
+    glutKeyboardFunc(self.keyDown)
+    glutKeyboardUpFunc(self.keyUp)
     glClearColor(0.5, 0.5, 0.5, 0.0)
     glClearDepth(1.0)
     glDepthFunc(GL_LESS)
@@ -69,12 +70,11 @@ class ACRenderer:
   def displayFunc(self):
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)	# Clear The Screen And The Depth Buffer
     glLoadIdentity()
-    glTranslatef(0.0, 0.0, -3.0)
-    glRotated(45.0, 1.0, 0.0, 0.0)
-
-    [l.render() for l in self.loaders]
+    self.render()
     glutSwapBuffers()
-    pass
+
+  def render(self):
+    [l.render() for l in self.loaders]
 
   def idleFunc(self):
     self.displayFunc()
@@ -92,7 +92,12 @@ class ACRenderer:
     gluPerspective(45.0, float(w)/float(h), 0.1, 200.0)
     glMatrixMode(GL_MODELVIEW)
 
-  def keypressFunc(self, key, x, y):
+  def keyUp(self, key, x, y):
+    self.keyFunc( 1, key, x, y)
+  def keyDown(self, key, x, y):
+    self.keyFunc(-1, key, x, y)
+
+  def keyFunc(self, direction, key, x, y):
     if key == '\033': # Escape key
       glutDestroyWindow(self.window)
       sys.exit()
@@ -157,6 +162,10 @@ class ACObject:
     return ( v1[0]-v2[0], v1[1]-v2[1], v1[2]-v2[2] )
   def vecCross(self, v1, v2):
     return ( v1[1]*v2[2] - v1[2]*v2[1], v1[2]*v2[0] - v1[0]*v2[2], v1[0]*v2[1] - v1[1]*v2[0])
+  def vecDot(self, v1, v2):
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
+#    return tuple([i*j for i,j in v1,v2])
+
 
   def update(self, time):
     [obj.update(time) for obj in self.subobjects]
@@ -174,10 +183,19 @@ class ACObject:
 
   def __genList(self):
 
+    p = (-0.01, 0.03, 0.11)
+
     self.displaylist = glGenLists(1)
 
     glNewList(self.displaylist, GL_COMPILE)
     for surface in self.surfaces:
+      if abs(surface['norm'][1]) > 0.005:
+        continue
+      
+      v = self.vecSub(p, self.vertices[surface['refs'][0][0]])
+      d = self.vecDot(v, surface['norm'])
+      if d > 0:
+        continue
       glBegin(GL_POLYGON)
       if surface.has_key('norm'):
         glNormal3dv(surface['norm'])
@@ -221,8 +239,8 @@ class ACObject:
 class ACLight(ACObject):
   def __init__(self, data, r):
     ACObject.__init__(self, data, r)
-    glLightfv(GL_LIGHT1, GL_AMBIENT, (0.2, 0.2, 0.2, 1.0))
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, (0.7, 0.7, 0.7, 1.0))
+    glLightfv(GL_LIGHT1, GL_AMBIENT, (0.4, 0.4, 0.4, 1.0))
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, (0.4, 0.4, 0.4, 1.0))
     glLightfv(GL_LIGHT1, GL_SPECULAR, (1.0, 1.0, 1.0, 1.0))
     glLightfv(GL_LIGHT1, GL_POSITION, self.location)
     glEnable(GL_LIGHT1)
