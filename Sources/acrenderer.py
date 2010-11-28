@@ -190,12 +190,13 @@ class ACObject:
     glNewList(self.displaylist, GL_COMPILE)
     for surface in self.surfaces:
       if abs(surface['norm'][1]) > 0.005:
-        continue
+#        continue
+        pass
       
       v = self.vecSub(p, self.vertices[surface['refs'][0][0]])
       d = self.vecDot(v, surface['norm'])
-      if d > 0:
-        continue
+ #     if d > 0:
+  #      continue
       glBegin(GL_POLYGON)
       if surface.has_key('norm'):
         glNormal3dv(surface['norm'])
