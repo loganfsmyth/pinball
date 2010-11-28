@@ -26,7 +26,7 @@ class ACRenderer:
     glutReshapeFunc(self.reshapeFunc)
     glutKeyboardFunc(self.keyDown)
     glutKeyboardUpFunc(self.keyUp)
-    glClearColor(0.5, 0.5, 0.5, 0.0)
+    glClearColor(0.2, 0.2, 0.2, 0.0)
     glClearDepth(1.0)
     glDepthFunc(GL_LESS)
     glEnable(GL_DEPTH_TEST)
@@ -107,6 +107,8 @@ class ACRenderer:
 
 class ACObject:
   def __init__(self, data, renderer):
+    if data.has_key('name'):
+      self.name = data['name']
     self.renderer = renderer
     self.moving = False
     self.location = list(data['loc'])
@@ -164,8 +166,6 @@ class ACObject:
     return ( v1[1]*v2[2] - v1[2]*v2[1], v1[2]*v2[0] - v1[0]*v2[2], v1[0]*v2[1] - v1[1]*v2[0])
   def vecDot(self, v1, v2):
     return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
-#    return tuple([i*j for i,j in v1,v2])
-
 
   def update(self, time):
     [obj.update(time) for obj in self.subobjects]
@@ -180,6 +180,10 @@ class ACObject:
   def draw(self):
     glBindTexture(GL_TEXTURE_2D, self.texture)
     glCallList(self.displaylist)
+    if hasattr(self, 'high') and self.high:
+      glTranslate(0.0, 0.5, 0.0)
+      glCallList(self.displaylist)
+      glTranslate(0.0, -0.5, 0.0)
 
   def __genList(self):
 
@@ -189,14 +193,14 @@ class ACObject:
 
     glNewList(self.displaylist, GL_COMPILE)
     for surface in self.surfaces:
-      if abs(surface['norm'][1]) > 0.005:
+#      if abs(surface['norm'][1]) > 0.005:
 #        continue
-        pass
+#        pass
       
-      v = self.vecSub(p, self.vertices[surface['refs'][0][0]])
-      d = self.vecDot(v, surface['norm'])
- #     if d > 0:
-  #      continue
+#      v = self.vecSub(p, self.vertices[surface['refs'][0][0]])
+#      d = self.vecDot(v, surface['norm'])
+#      if d > 0:
+#        continue
       glBegin(GL_POLYGON)
       if surface.has_key('norm'):
         glNormal3dv(surface['norm'])

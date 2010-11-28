@@ -66,19 +66,67 @@ class Ball(ACObject):
   def __init__(self, dat, r):
     ACObject.__init__(self, dat, r)
     self.velocity = 0
+    self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
 
   def update(self, time):
 #    print "FPS: %f" % (1000000/time.microseconds)
-    self.velocity -= time.microseconds*(math.tan(7*math.pi/180)*6.0)/1000000
-#    self.location[2] -= time.microseconds*self.velocity/1000000
+    self.velocity -= time.microseconds*(math.tan(7*math.pi/180)*6.0)/4000000
+    self.location[2] -= time.microseconds*self.velocity/1000000
+
+    s = self.getSurfaces(self.renderer.loaders)
+    if s[1]:
+      s[1].high = True
+      if hasattr(s[1], 'name'):
+        print "Hit %s" % s[1].name
+
+  def getSurfaces(self, objs):
+    loc = self.location
+
+    (all_closest, all_object, all_dist) = (None, None, 1000000000)
+
+    for o in objs:
+      within = True
+      (closest, object, dist) = (None, None, 10000000)
+      for s in o.surfaces:
+
+        p1 = o.vertices[s['refs'][0][0]]
+        n = s['norm']
+        # Check if the surface's normal is horizontal
+        if abs(n[1]) > 0.05:
+          continue
+
+        # Check if the surface's normal faces toward the ball
+#        v = self.vecSub(loc, p1)
+#        d = self.vecDot(v, n)
+#        if d < 0:
+#          continue
+
+
+        D = abs((n[0]*loc[0] + n[1]*loc[1] + n[2]*loc[2]) - (n[0]*(o.location[0]+p1[0]) + n[1]*(o.location[1]+p1[1]) + n[2]*(o.location[2] + p1[2])))
+
+        if D > self.radius:
+          within = False
+          break
+
+        if D < dist:
+          (closest, dist) = (s, D)
+
+      if not within:
+        if dist < all_dist:
+          (all_closest, all_object, all_dist) = (closest, o, dist)
+#        if hasattr(o, 'name'): print "Showing %s" % (o.name, )
+
+      v = self.getSurfaces(o.subobjects)
+      if v[2] < dist:
+        (all_closest, all_object, all_dist) = v
+
+    return (all_closest, all_object, all_dist)
 
 class Peg(ACObject):
   pass
 
 class RubberTriangle(ACObject):
   pass
-
-
 
 if __name__ == '__main__':
   glutInit(sys.argv)
