@@ -85,55 +85,62 @@ class Ball(ACObject):
     (surface, object, distance) = self.getClosestSurface()
     if object:
       n = surface['norm']
-      object.high = True
+#      object.high = True
 
       factor = self.vecMult(n, 2*distance)
-      print surface
-      print object.name
-      print distance
+#      print surface
+#      print object.name
+#      print distance
 
-      print "Orig Vel: %s" % self.velocity
+#      print "Orig Vel: %s" % self.velocity
       self.velocity = list(self.vecMult(self.vecSub(self.velocity, factor), -1))
-      print "New Vel:  %s" % self.velocity
+#      print "New Vel:  %s" % self.velocity
 
   def getClosestSurface(self, objs = None):
     if objs == None:
       objs = self.renderer.loaders
-    loc = self.location
 
-    (all_closest, all_object, all_dist) = (None, None, 1000000000)
+    (surface, object, dist) = (None, None, float('inf'))
 
     for o in objs:
       if o == self:
         continue
-      o.high = False
-      within = o.surfaces and True or False
-      (closest, object, dist) = (None, None, 10000000)
-      for s in o.surfaces:
-        p1 = o.vertices[s['refs'][0][0]]
-        n = s['norm']
-        # Check if the surface's normal is horizontal
-        if abs(n[1]) > 0.05:
-          continue
-
-        D = ((n[0]*loc[0] + n[1]*loc[1] + n[2]*loc[2]) - (n[0]*(o.location[0]+p1[0]) + n[1]*(o.location[1]+p1[1]) + n[2]*(o.location[2] + p1[2])))
-
-        if D > self.radius:
-          within = False
-          break
-
-        if D < dist:
-          (closest, object, dist) = (s, o, D)
-
-      if within:
-        if dist < all_dist:
-          (all_closest, all_object, all_dist) = (closest, object, dist)
+      v = self.getClosestObjectSurface(o)
+      if v[1] < dist:
+        (surface, object, dist) = (v[0], o, v[1])
 
       v = self.getClosestSurface(o.subobjects)
       if v[2] < dist:
-        (all_closest, all_object, all_dist) = v
+        (surface, object, dist) = v
 
-    return (all_closest, all_object, all_dist)
+    return (surface, object, dist)
+
+  def getClosestObjectSurface(self, obj):
+    (surface, dist) = (None, float('inf'))
+    if len(obj.surfaces) == 0:
+      return (surface, dist)
+    loc = self.location
+    obj.high = False
+    
+    outside = False
+    for s in obj.surfaces:
+      p1 = obj.vertices[s['refs'][0][0]]
+      n = s['norm']
+      # Check if the surface's normal is horizontal
+      if abs(n[1]) > 0.05:
+        continue
+
+      D = ((n[0]*loc[0] + n[1]*loc[1] + n[2]*loc[2]) - (n[0]*(obj.location[0]+p1[0]) + n[1]*(obj.location[1]+p1[1]) + n[2]*(obj.location[2] + p1[2])))
+
+      if D > self.radius:
+        outside = True
+        break
+      if D < dist:
+        (surface, dist) = (s, D)
+
+    if outside:
+      return (None, float('inf'))
+    return (surface, dist)
 
 class Peg(ACObject):
   pass
