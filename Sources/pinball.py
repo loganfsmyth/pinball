@@ -71,7 +71,7 @@ class Ball(ACObject):
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
     print "Ball Radius: %f" % self.radius
 
-    self.location[0] = 0.30
+    self.location[0] = 0.35
     self.location[2] = -0.35
 
     self.velocity[2] = 0.2
@@ -86,34 +86,16 @@ class Ball(ACObject):
     if object:
       n = surface['norm']
 
-#      print "-------------------------------\nPreviously %s" % (surface, )
-#      self.debug = True
-      result = self.getClosestObjectSurface(object)
-#      self.debug = False
-#      print result
-#      print distance
-#      print "--------DONE-------------------"
-
-#      print "Norm: %s" % (n, )
-#      print "Vel: %s" % (self.velocity, )
-#      print "Dist: %f" % distance
-
+      # move back along path to just before collision with surface
       mv =  0.005 + self.radius - distance
       self.location = self.vecSub(self.location, self.vecMult(self.velocity, mv))
 
+      # calculate new velocity reflected off the surface normal
+      mag = -2*self.vecDot(n, self.velocity)/self.vecMag(self.velocity)
+      new_vel = self.vecAdd(self.velocity, self.vecMult(n,mag))
 
-      dot = self.vecDot(n, self.velocity)
-      mag = -2*dot/self.vecMag(self.velocity)
-      factor = self.vecMult(n, mag)
-      
-      before = self.vecMag(self.velocity)
-#      print "Orig Vel: %s" % self.velocity
-      self.velocity = list(self.vecMult(self.vecAdd(self.velocity, factor), 1.0))
-#      print "New Vel:  %s" % self.velocity
-      after = self.vecMag(self.velocity)
-
-      if (after > before):
-        print "Velocity Greater!!!"
+      # set new velocity and scale, plus account for velocity changes during previous vector calculations
+      self.velocity = list(self.vecMult(new_vel, 0.8*self.vecMag(self.velocity)/self.vecMag(new_vel)))
 
   def getClosestSurface(self, objs = None):
     if objs == None:
