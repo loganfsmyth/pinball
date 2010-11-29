@@ -145,7 +145,6 @@ class ACObject:
         vs = self.vertices
         r = s['refs']
 
-
         v0 = vs[r[0][0]]
         v1 = vs[r[1][0]]
         v2 = vs[r[2][0]]
@@ -156,12 +155,28 @@ class ACObject:
         n = self.vecCross(vn1, vn2)
         s['norm'] = self.vecNorm(n)
 
+        tot = (0,0,0)
+        for r in s['refs']:
+          tot = self.vecAdd(self.vertices[r[0]], tot)
+
+        s['center'] = self.vecMult(tot, 1.0/len(s['refs']))
+
+      else:
+        s['norm'] = (0,0,0)
+        s['center'] = (0,0,0)
+
   def vecNorm(self, vec):
     len = math.sqrt(sum([i**2 for i in vec]))
+    if len == 0:
+      return (0,0,0)
     return tuple([i/len for i in vec])
 
   def vecSub(self, v1, v2):
     return ( v1[0]-v2[0], v1[1]-v2[1], v1[2]-v2[2] )
+  def vecAdd(self, v1, v2):
+    return ( v1[0]+v2[0], v1[1]+v2[1], v1[2]+v2[2] )
+  def vecMult(self, v, n):
+    return ( v[0]*n, v[1]*n, v[2]*n )
   def vecCross(self, v1, v2):
     return ( v1[1]*v2[2] - v1[2]*v2[1], v1[2]*v2[0] - v1[0]*v2[2], v1[0]*v2[1] - v1[1]*v2[0])
   def vecDot(self, v1, v2):
@@ -186,28 +201,17 @@ class ACObject:
       glTranslate(0.0, -0.5, 0.0)
 
   def __genList(self):
-
-    p = (-0.01, 0.03, 0.11)
-
     self.displaylist = glGenLists(1)
 
     glNewList(self.displaylist, GL_COMPILE)
     for surface in self.surfaces:
-#      if abs(surface['norm'][1]) > 0.005:
-#        continue
-#        pass
-      
-#      v = self.vecSub(p, self.vertices[surface['refs'][0][0]])
-#      d = self.vecDot(v, surface['norm'])
-#      if d > 0:
-#        continue
       glBegin(GL_POLYGON)
       if surface.has_key('norm'):
         glNormal3dv(surface['norm'])
       mat = surface['material']
       glColor3dv(surface['material']['rgb'])
 
-      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  mat['rgb'] + (1,))
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  mat['rgb'] + (mat['trans'],))
       glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION,  mat['emis'] + (1,))
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  mat['amb'] + (1,))
       glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  mat['spec'] + (1,))
@@ -217,6 +221,16 @@ class ACObject:
         glTexCoord2d(ref[1], ref[2])
         glVertex3dv(self.vertices[ref[0]])
       glEnd()
+
+      if surface.has_key('norm'):
+        c = surface['center']
+        glTranslate(c[0], c[1], c[2])
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (0, 0, 0))
+        glBegin(GL_LINES)
+        glVertex3dv((0,0,0))
+        glVertex3dv(self.vecMult(surface['norm'], 0.05))
+        glEnd()
+        glTranslate(-1*c[0], -1*c[1], -1*c[2])
     glEndList()
 
   def __loadTexture(self, file):

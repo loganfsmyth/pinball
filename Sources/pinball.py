@@ -6,7 +6,9 @@ from acrenderer import *
 class Pinball(ACRenderer):
   def __init__(self):
     self.keypress = []
+
     ACRenderer.__init__(self, 'Pinball.ac', title="Pinball!!!")
+#    ACRenderer.__init__(self, 'Pinball0_3.ac', title="Pinball!!!")
 
     glLightfv(GL_LIGHT2, GL_AMBIENT, (0.2, 0.2, 0.2, 1.0))
     glLightfv(GL_LIGHT2, GL_DIFFUSE, (0.5, 0.5, 0.5, 1.0))
@@ -65,58 +67,69 @@ class Paddle(ACObject):
 class Ball(ACObject):
   def __init__(self, dat, r):
     ACObject.__init__(self, dat, r)
-    self.velocity = 0
+    self.velocity = [0, 0, 0]
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
+    print "Ball Radius: %f" % self.radius
+
+    self.location[0] = 0.35#0.40
+    self.location[2] = -0.35
+
+    self.velocity[2] = 0.2
 
   def update(self, time):
 #    print "FPS: %f" % (1000000/time.microseconds)
-    self.velocity -= time.microseconds*(math.tan(7*math.pi/180)*6.0)/4000000
-    self.location[2] -= time.microseconds*self.velocity/1000000
+    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/4000000
 
-    s = self.getSurfaces(self.renderer.loaders)
-    if s[1]:
-      s[1].high = True
-      if hasattr(s[1], 'name'):
-        print "Hit %s" % s[1].name
+    self.location = self.vecAdd(self.location, self.vecMult(self.velocity, time.microseconds/1000000.0))
 
-  def getSurfaces(self, objs):
+    (surface, object, distance) = self.getClosestSurface()
+    if object:
+      n = surface['norm']
+      object.high = True
+
+      factor = self.vecMult(n, 2*distance)
+      print surface
+      print object.name
+      print distance
+
+      print "Orig Vel: %s" % self.velocity
+      self.velocity = list(self.vecMult(self.vecSub(self.velocity, factor), -1))
+      print "New Vel:  %s" % self.velocity
+
+  def getClosestSurface(self, objs = None):
+    if objs == None:
+      objs = self.renderer.loaders
     loc = self.location
 
     (all_closest, all_object, all_dist) = (None, None, 1000000000)
 
     for o in objs:
-      within = True
+      if o == self:
+        continue
+      o.high = False
+      within = o.surfaces and True or False
       (closest, object, dist) = (None, None, 10000000)
       for s in o.surfaces:
-
         p1 = o.vertices[s['refs'][0][0]]
         n = s['norm']
         # Check if the surface's normal is horizontal
         if abs(n[1]) > 0.05:
           continue
 
-        # Check if the surface's normal faces toward the ball
-#        v = self.vecSub(loc, p1)
-#        d = self.vecDot(v, n)
-#        if d < 0:
-#          continue
-
-
-        D = abs((n[0]*loc[0] + n[1]*loc[1] + n[2]*loc[2]) - (n[0]*(o.location[0]+p1[0]) + n[1]*(o.location[1]+p1[1]) + n[2]*(o.location[2] + p1[2])))
+        D = ((n[0]*loc[0] + n[1]*loc[1] + n[2]*loc[2]) - (n[0]*(o.location[0]+p1[0]) + n[1]*(o.location[1]+p1[1]) + n[2]*(o.location[2] + p1[2])))
 
         if D > self.radius:
           within = False
           break
 
         if D < dist:
-          (closest, dist) = (s, D)
+          (closest, object, dist) = (s, o, D)
 
-      if not within:
+      if within:
         if dist < all_dist:
-          (all_closest, all_object, all_dist) = (closest, o, dist)
-#        if hasattr(o, 'name'): print "Showing %s" % (o.name, )
+          (all_closest, all_object, all_dist) = (closest, object, dist)
 
-      v = self.getSurfaces(o.subobjects)
+      v = self.getClosestSurface(o.subobjects)
       if v[2] < dist:
         (all_closest, all_object, all_dist) = v
 
