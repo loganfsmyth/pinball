@@ -107,6 +107,7 @@ class ACRenderer:
 
 class ACObject:
   def __init__(self, data, renderer):
+    self.debug = False
     if data.has_key('name'):
       self.name = data['name']
     self.renderer = renderer
@@ -124,6 +125,10 @@ class ACObject:
 
     self.__processSurfaces()
     self.__genList()
+
+#    if hasattr(self, 'name') and self.name == 'peg':
+#      print len(self.vertices)
+#      print len(self.surfaces)
 
   def __processSurfaces(self):
     nv = len(self.vertices)
@@ -166,7 +171,7 @@ class ACObject:
         s['center'] = (0,0,0)
 
   def vecNorm(self, vec):
-    len = math.sqrt(sum([i**2 for i in vec]))
+    len = abs(math.sqrt(sum([i**2 for i in vec])))
     if len == 0:
       return (0,0,0)
     return tuple([i/len for i in vec])
@@ -181,6 +186,8 @@ class ACObject:
     return ( v1[1]*v2[2] - v1[2]*v2[1], v1[2]*v2[0] - v1[0]*v2[2], v1[0]*v2[1] - v1[1]*v2[0])
   def vecDot(self, v1, v2):
     return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
+  def vecMag(self, v):
+    return abs(math.sqrt(sum([i**2 for i in v])))
 
   def update(self, time):
     [obj.update(time) for obj in self.subobjects]
@@ -201,6 +208,9 @@ class ACObject:
       glTranslate(0.0, -0.5, 0.0)
 
   def __genList(self):
+#    if hasattr(self, 'name'):
+#      print "Generating %s with %d surfs" % (self.name, len(self.surfaces))
+
     self.displaylist = glGenLists(1)
 
     glNewList(self.displaylist, GL_COMPILE)
@@ -222,7 +232,7 @@ class ACObject:
         glVertex3dv(self.vertices[ref[0]])
       glEnd()
 
-      if surface.has_key('norm'):
+      if False and surface.has_key('norm'):
         c = surface['center']
         glTranslate(c[0], c[1], c[2])
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (0, 0, 0))
