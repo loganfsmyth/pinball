@@ -71,31 +71,41 @@ class Ball(ACObject):
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
     print "Ball Radius: %f" % self.radius
 
+#    self.location[0] = 0.68
+#    self.location[2] = 1.00
+#    self.velocity[2] = -3.5
+
     self.location[0] = 0.35
     self.location[2] = -0.35
-
+    self.velocity[0] = -1.2
     self.velocity[2] = 0.2
+
+
 
   def update(self, time):
 #    print "FPS: %f" % (1000000/time.microseconds)
-    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/1000000
+    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
 
     self.location = self.vecAdd(self.location, self.vecMult(self.velocity, time.microseconds/1000000.0))
 
     (surface, object, distance) = self.getClosestSurface()
     if object:
+#      object.high = True
+#      print "HIT %s" % object.name
       n = surface['norm']
 
       # move back along path to just before collision with surface
-      mv =  0.005 + self.radius - distance
-      self.location = self.vecSub(self.location, self.vecMult(self.velocity, mv))
+      mv =  0.004 + self.radius - distance
+      self.location = self.vecSub(self.location, self.vecMult(self.velocity, mv/self.vecMag(self.velocity)))
 
       # calculate new velocity reflected off the surface normal
       mag = -2*self.vecDot(n, self.velocity)/self.vecMag(self.velocity)
       new_vel = self.vecAdd(self.velocity, self.vecMult(n,mag))
 
       # set new velocity and scale, plus account for velocity changes during previous vector calculations
-      self.velocity = list(self.vecMult(new_vel, 0.8*self.vecMag(self.velocity)/self.vecMag(new_vel)))
+      new_vel = self.vecMult(new_vel, self.vecMag(self.velocity)/self.vecMag(new_vel))
+
+      self.velocity = list(self.vecMult(new_vel, 0.8))
 
   def getClosestSurface(self, objs = None):
     if objs == None:
@@ -118,6 +128,12 @@ class Ball(ACObject):
 
   def getClosestObjectSurface(self, obj):
     dbg = self.debug
+    pad = False
+
+    if hasattr(obj, 'name') and obj.name.startswith('paddle'):
+#      print "PADDLE"
+      pad = True
+#      dbg = True
 
     if dbg: print "Checking surfaces of %s" % obj.name
 
@@ -150,6 +166,9 @@ class Ball(ACObject):
 #        if abs(D) < abs(dist):
 #          if dbg: print "SET"
         (surface, dist) = (s, D)
+
+#    if pad:
+#      sys.exit()
 
     if outside:
       return (None, float('inf'))
