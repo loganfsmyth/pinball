@@ -1,7 +1,7 @@
 
 import math
 
-from acrenderer import *
+from acgame import *
 
 class Pinball(ACRenderer):
   def __init__(self):
@@ -41,7 +41,7 @@ class Pinball(ACRenderer):
     [f(direction, key, x, y) for f in self.keypress]
     ACRenderer.keyFunc(self, direction, key, x, y)
 
-class Paddle(ACObject):
+class Paddle(GameObject):
   def __init__(self, dat, r):
     self.angle = 0
     self.direction = -1
@@ -49,7 +49,7 @@ class Paddle(ACObject):
     self.max_angle = 40
     r.keypress.append(self.keyPress)
 
-    ACObject.__init__(self, dat, r)
+    GameObject.__init__(self, dat, r)
 
   def keyPress(self, dir, key, x, r):
     if (key == 'z' and self.side == 1) or (key == '/' and self.side == -1):
@@ -61,12 +61,12 @@ class Paddle(ACObject):
 
   def draw(self):
     glRotate(self.side * self.angle, 0.0, 1.0, 0.0)
-    ACObject.draw(self)
+    GameObject.draw(self)
     glRotate(-1*self.side*self.angle, 0.0, 1.0, 0.0)
 
-class Ball(ACObject):
+class Ball(GameObject):
   def __init__(self, dat, r):
-    ACObject.__init__(self, dat, r)
+    GameObject.__init__(self, dat, r)
     self.velocity = [0, 0, 0]
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
     print "Ball Radius: %f" % self.radius
@@ -75,8 +75,8 @@ class Ball(ACObject):
 #    self.location[2] = 1.00
 #    self.velocity[2] = -3.5
 
-    self.location[0] = 0.35
-    self.location[2] = -0.35
+    self.location[0] = 0.15
+    self.location[2] = -0.65
     self.velocity[0] = -1.2
     self.velocity[2] = 0.2
 
@@ -84,13 +84,13 @@ class Ball(ACObject):
 
   def update(self, time):
 #    print "FPS: %f" % (1000000/time.microseconds)
-    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
+#    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
 
     self.location = self.vecAdd(self.location, self.vecMult(self.velocity, time.microseconds/1000000.0))
 
     (surface, object, distance) = self.getClosestSurface()
     if object:
-#      object.high = True
+      object.high = True
 #      print "HIT %s" % object.name
       n = surface['norm']
 
@@ -105,7 +105,7 @@ class Ball(ACObject):
       # set new velocity and scale, plus account for velocity changes during previous vector calculations
       new_vel = self.vecMult(new_vel, self.vecMag(self.velocity)/self.vecMag(new_vel))
 
-      self.velocity = list(self.vecMult(new_vel, 0.8))
+      self.velocity = list(self.vecMult(new_vel, 1.0))
 
   def getClosestSurface(self, objs = None):
     if objs == None:
@@ -130,15 +130,10 @@ class Ball(ACObject):
     dbg = self.debug
     pad = False
 
-    if hasattr(obj, 'name') and obj.name.startswith('paddle'):
-#      print "PADDLE"
-      pad = True
-#      dbg = True
-
     if dbg: print "Checking surfaces of %s" % obj.name
 
     (surface, dist) = (None, float('inf'))
-    if len(obj.surfaces) == 0:
+    if len(obj.surfaces) == 0 or (hasattr(obj, 'name') and obj.name == 'polyline'):
       return (surface, dist)
     loc = self.location
     obj.high = False
@@ -163,12 +158,8 @@ class Ball(ACObject):
         break
       if abs(D) < abs(dist):
         if dbg: print "Surface is at distance %f, less that %f" % (D, dist)
-#        if abs(D) < abs(dist):
-#          if dbg: print "SET"
         (surface, dist) = (s, D)
 
-#    if pad:
-#      sys.exit()
 
     if outside:
       return (None, float('inf'))
@@ -176,10 +167,10 @@ class Ball(ACObject):
     if dbg: print "Final Surface: dist: %f surf:%s" % (dist, surface)
     return (surface, dist)
 
-class Peg(ACObject):
+class Peg(GameObject):
   pass
 
-class RubberTriangle(ACObject):
+class RubberTriangle(GameObject):
   pass
 
 if __name__ == '__main__':
