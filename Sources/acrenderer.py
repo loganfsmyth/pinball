@@ -213,10 +213,6 @@ class ACObject:
     """Function to draw the object at the given location"""
     glBindTexture(GL_TEXTURE_2D, self.texture)
     glCallList(self.displaylist)
-    if hasattr(self, 'high') and self.high:
-      glTranslate(0.0, 0.5, 0.0)
-      glCallList(self.displaylist)
-      glTranslate(0.0, -0.5, 0.0)
 
   def __genList(self):
     """Generate a displaylist for the object"""

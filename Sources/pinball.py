@@ -3,23 +3,17 @@ import math
 
 from acgame import *
 
-class Pinball(ACRenderer):
+class Pinball(ACGame):
   def __init__(self):
     self.keypress = []
 
-    ACRenderer.__init__(self, 'Pinball.ac', title="Pinball!!!")
-#    ACRenderer.__init__(self, 'Pinball0_3.ac', title="Pinball!!!")
-
-    glLightfv(GL_LIGHT2, GL_AMBIENT, (0.2, 0.2, 0.2, 1.0))
-    glLightfv(GL_LIGHT2, GL_DIFFUSE, (0.5, 0.5, 0.5, 1.0))
-    glLightfv(GL_LIGHT2, GL_SPECULAR, (1.0, 1.0, 1.0, 1.0))
-    glLightfv(GL_LIGHT2, GL_POSITION, (0, 4.24, 4.24))
-    glEnable(GL_LIGHT2)
+    ACGame.__init__(self, 'Pinball.ac', title="Pinball!!!")
+#    ACGame.__init__(self, 'Pinball0_3.ac', title="Pinball!!!")
 
   def render(self): 
     glTranslatef(0.0, 0.0, -3.0)
     glRotated(45.0, 1.0, 0.0, 0.0)
-    ACRenderer.render(self)
+    ACGame.render(self)
 
   def getObjectClass(self, dat):
     if dat.has_key('name'):
@@ -31,17 +25,21 @@ class Pinball(ACRenderer):
         return Peg
       elif dat['name'].startswith('triangle'):
         return RubberTriangle
+      elif dat['name'] == 'drop':
+        return Drop
+      elif dat['name'] == 'dropitem':
+        return DropItem
 
-    return ACRenderer.getObjectClass(self, dat)
+    return ACGame.getObjectClass(self, dat)
 
   def displayFunc(self):
-    ACRenderer.displayFunc(self)
+    ACGame.displayFunc(self)
 
   def keyFunc(self, direction, key, x, y):
     [f(direction, key, x, y) for f in self.keypress]
-    ACRenderer.keyFunc(self, direction, key, x, y)
+    ACGame.keyFunc(self, direction, key, x, y)
 
-class Paddle(GameObject):
+class Paddle(ACGameObject):
   def __init__(self, dat, r):
     self.angle = 0
     self.direction = -1
@@ -49,7 +47,7 @@ class Paddle(GameObject):
     self.max_angle = 40
     r.keypress.append(self.keyPress)
 
-    GameObject.__init__(self, dat, r)
+    ACGameObject.__init__(self, dat, r)
 
   def keyPress(self, dir, key, x, r):
     if (key == 'z' and self.side == 1) or (key == '/' and self.side == -1):
@@ -61,12 +59,12 @@ class Paddle(GameObject):
 
   def draw(self):
     glRotate(self.side * self.angle, 0.0, 1.0, 0.0)
-    GameObject.draw(self)
+    ACGameObject.draw(self)
     glRotate(-1*self.side*self.angle, 0.0, 1.0, 0.0)
 
-class Ball(GameObject):
+class Ball(ACGameObject):
   def __init__(self, dat, r):
-    GameObject.__init__(self, dat, r)
+    ACGameObject.__init__(self, dat, r)
     self.velocity = [0, 0, 0]
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
     print "Ball Radius: %f" % self.radius
@@ -148,29 +146,39 @@ class Ball(GameObject):
         if dbg: print "Discarding, not vertical"
         continue
 
+      # Calculate signed distance from the plane
       D = ((n[0]*loc[0] + n[1]*loc[1] + n[2]*loc[2]) - (n[0]*(obj.location[0]+p1[0]) + n[1]*(obj.location[1]+p1[1]) + n[2]*(obj.location[2] + p1[2])))
 
       if dbg: print "Distance: %f Current: %f" % (D, dist)
 
+      # If ball farther than radius, it cannot be inside, so break
       if D > self.radius:
         outside = True
         if dbg: print "object is outside, breaking"
         break
+
+      # Use abs to find the surface that the ball is closest to
       if abs(D) < abs(dist):
         if dbg: print "Surface is at distance %f, less that %f" % (D, dist)
         (surface, dist) = (s, D)
 
-
+    # If we broke, it is outside the object
     if outside:
       return (None, float('inf'))
 
     if dbg: print "Final Surface: dist: %f surf:%s" % (dist, surface)
     return (surface, dist)
 
-class Peg(GameObject):
+class Peg(ACGameObject):
   pass
 
-class RubberTriangle(GameObject):
+class RubberTriangle(ACGameObject):
+  pass
+
+class Drop(ACGameObject):
+  pass
+
+class DropItem(ACGameObject):
   pass
 
 if __name__ == '__main__':
