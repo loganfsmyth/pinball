@@ -5,7 +5,7 @@ from acgame import *
 
 class Pinball(ACGame):
   def __init__(self):
-    self.keypress = []
+    
 
     ACGame.__init__(self, 'Pinball.ac', title="Pinball!!!")
 #    ACGame.__init__(self, 'Pinball0_3.ac', title="Pinball!!!")
@@ -35,17 +35,12 @@ class Pinball(ACGame):
   def displayFunc(self):
     ACGame.displayFunc(self)
 
-  def keyFunc(self, direction, key, x, y):
-    [f(direction, key, x, y) for f in self.keypress]
-    ACGame.keyFunc(self, direction, key, x, y)
-
 class Paddle(ACGameObject):
   def __init__(self, dat, r):
     self.angle = 0
     self.direction = -1
     self.side = dat['name'].endswith('-r') and -1 or 1
     self.max_angle = 40
-    r.keypress.append(self.keyPress)
 
     ACGameObject.__init__(self, dat, r)
 
@@ -78,8 +73,6 @@ class Ball(ACGameObject):
     self.velocity[0] = -1.2
     self.velocity[2] = 0.2
 
-
-
   def update(self, time):
 #    print "FPS: %f" % (1000000/time.microseconds)
 #    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
@@ -106,18 +99,23 @@ class Ball(ACGameObject):
       self.velocity = list(self.vecMult(new_vel, 1.0))
 
   def getClosestSurface(self, objs = None):
+    """Get the closest surface and object based on a list of objects"""
     if objs == None:
       objs = self.renderer.loaders
 
     (surface, object, dist) = (None, None, float('inf'))
 
+    # Check every object to find which has the closest surface
     for o in objs:
       if o == self:
         continue
+
+      # Check the object first
       v = self.getClosestObjectSurface(o)
       if v[1] < dist:
         (surface, object, dist) = (v[0], o, v[1])
 
+      # Then check the object's children
       v = self.getClosestSurface(o.subobjects)
       if v[2] < dist:
         (surface, object, dist) = v
@@ -125,6 +123,7 @@ class Ball(ACGameObject):
     return (surface, object, dist)
 
   def getClosestObjectSurface(self, obj):
+    """Get the closest surface of a given object"""
     dbg = self.debug
     pad = False
 
