@@ -25,7 +25,8 @@ class Pinball(ACGame):
 #    ACGame.__init__(self, 'Pinball.ac', title="Pinball!!!")
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
 
-    self.ball.location = list(self.starting['start4'].position)
+    self.ball.location = list(self.starting['start'].position)
+    self.ball.velocity = [0, 0, -2.8]
 
   def render(self): 
     glTranslatef(0.0, 0.0, -3.0)
@@ -65,7 +66,7 @@ class Paddle(ACGameObject):
 
     self.calcVerts = []
 
-#    self.useDisplaylist = False
+    self.useDisplaylist = False
 
   def keyPress(self, dir, key, x, r):
     if (key == 'z' and self.side == 1) or (key == '/' and self.side == -1):
@@ -75,6 +76,11 @@ class Paddle(ACGameObject):
     if (self.angle < self.max_angle and self.direction == 1) or (self.angle > 0 and self.direction == -1):
       self.angle += self.direction*time.microseconds/2000.0
       self.calcVerts = []
+
+    if self.angle < 0:
+      self.angle = 0
+    elif self.angle > self.max_angle:
+      self.angle = self.max_angle
 
   def draw(self):
     glRotate(self.side * self.angle, 0.0, 1.0, 0.0)
@@ -106,16 +112,16 @@ class Ball(ACGameObject):
 #    self.velocity[2] = 0.1
 
 #    self.location[0] = 0.20
-#    self.location[2] -= 2.25
-#    self.velocity[0] = -0.8
-#    self.velocity[2] = -0.5
+#    self.location[2] += 0.6
+#    self.velocity[0] = 0.8
+#    self.velocity[2] = 0.5
 
   def update(self, time):
 
     speed = self.vecMag(self.velocity) 
     # Check for collision based on current position and velocity
     (surface, object, distance) = self.getClosestSurface()
-    if object and speed > 0.001:
+    if object and not speed == 0.0:
       n = surface['norm']
 
       # move back along path to just before collision with surface
@@ -143,6 +149,8 @@ class Ball(ACGameObject):
     if objs == None:
       objs = self.renderer.loaders
 
+    dbg = False
+
     (surface, object, dist) = (None, None, float('inf'))
 
     # Check every object to find which has the closest surface
@@ -150,15 +158,24 @@ class Ball(ACGameObject):
       if o == self:
         continue
 
+      if o.name == 'paddle-r':
+#        self.debug = True
+#        print "-------------------------------"
+        dbg = True
+
       # Check the object first
       v = self.getClosestObjectSurface(o)
-      if v[1] < dist:
+      if abs(v[1]) < abs(dist):
         (surface, object, dist) = (v[0], o, v[1])
       # Then check the object's children
       v = self.getClosestSurface(o.subobjects)
 
-      if v[2] < dist:
+      if abs(v[2]) < abs(dist):
         (surface, object, dist) = v
+
+      if dbg:
+        dbg = False
+        self.debug = False
 
     return (surface, object, dist)
 

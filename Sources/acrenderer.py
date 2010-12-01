@@ -39,8 +39,9 @@ class ACRenderer:
   def animate(self, arg):
     """Timer callback for OpenGL. Used to animate objects"""
     time = datetime.datetime.now()
-    [l.update(time - self.currenttime) for l in self.loaders]
+    d = time - self.currenttime
     self.currenttime = time
+    [l.update(d) for l in self.loaders]
     self.displayFunc()
     glutTimerFunc(10, self.animate, 0)
 
@@ -216,10 +217,7 @@ class ACObject:
   def draw(self):
     """Function to draw the object at the given location"""
     glBindTexture(GL_TEXTURE_2D, self.texture)
-    if self.useDisplaylist:
-      glCallList(self.displaylist)
-    else:
-      self.__genList(True)
+    glCallList(self.displaylist)
 
   def __genList(self, render = False):
     """Generate a displaylist for the object"""
