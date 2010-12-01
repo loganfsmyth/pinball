@@ -25,8 +25,9 @@ class Pinball(ACGame):
 #    ACGame.__init__(self, 'Pinball.ac', title="Pinball!!!")
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
 
-    self.ball.location = list(self.starting['start'].position)
-    self.ball.velocity = [0, 0, -3.2]
+    self.ball.location = list(self.starting['start2'].position)
+#    self.ball.location[2] -= 0.1
+#    self.ball.velocity = [0.5, 0, 0.1]
 
   def render(self): 
     glTranslatef(0.0, 0.0, -3.0)
@@ -68,8 +69,6 @@ class Paddle(ACGameObject):
 
     self.calcVerts = []
 
-    self.useDisplaylist = False
-
   def keyPress(self, dir, key, x, r):
     if (key == 'z' and self.side == 1) or (key == '/' and self.side == -1):
       self.direction = -1*dir
@@ -89,9 +88,7 @@ class Paddle(ACGameObject):
 
   def draw(self):
     glRotate(self.side * self.angle, 0.0, 1.0, 0.0)
-    glBindTexture(GL_TEXTURE_2D, self.texture)
-    self.genList(True)
-    #ACGameObject.draw(self)
+    ACGameObject.draw(self)
     glRotate(-1*self.side*self.angle, 0.0, 1.0, 0.0)
 
   def getVertices(self):
@@ -115,6 +112,7 @@ class Ball(ACGameObject):
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
 
   def update(self, time):
+#    print "FPS: %f" % (1000000/time.microseconds, )
 
     speed = self.vecMag(self.velocity) 
     # Check for collision based on current position and velocity
@@ -135,9 +133,13 @@ class Ball(ACGameObject):
 
       self.velocity = list(self.vecMult(new_vel, object.collisionFactor))
 
+      print "Hit %s %s" % (object.name, object.hidden)
+
       object.hitBy(self, surface)
 
     # Apply some gravity
+
+#    self.velocity[0] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
     self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
 
     ACGameObject.update(self, time)
@@ -153,7 +155,7 @@ class Ball(ACGameObject):
 
     # Check every object to find which has the closest surface
     for o in objs:
-      if o == self:
+      if o == self or o.hidden:
         continue
 
       if o.name == 'paddle-r':
@@ -233,10 +235,24 @@ class RubberTriangle(ACGameObject):
 
 
 class Drop(ACGameObject):
-  pass
+  def __init__(self, data, r):
+    ACGameObject.__init__(self, data, r)
+    self.count = 0
+  def childHit(self, child):
+    self.count += 1
+
+    if self.count == 3:
+      for o in self.subobjects:
+        o.hidden = False
+      print "Unhid all drops"
 
 class DropItem(ACGameObject):
-  pass
+  def __init__(self, data, r):
+    ACGameObject.__init__(self, data, r)
+
+  def hitBy(self, obj, surface):
+    self.hidden = True
+    self.parent.childHit(self)
 
 class Bumper(ACGameObject):
   def __init__(self, data, r):

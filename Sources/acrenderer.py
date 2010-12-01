@@ -112,6 +112,7 @@ class ACRenderer:
 class ACObject:
   def __init__(self, data, renderer):
     self.debug = False
+    self.hidden = False
     self.showNormal = False
     self.useDisplaylist = True
     if data.has_key('name'):
@@ -132,7 +133,7 @@ class ACObject:
     self.subobjects = []
 
     self.__processSurfaces()
-    self.genList()
+    self.__genList()
 
   def __processSurfaces(self):
     """Go through the object's surfaces and calculate normals, centers and object centroid"""
@@ -208,6 +209,9 @@ class ACObject:
 
   def render(self):
     """Draw the object and subobjects based on it's location"""
+    if self.hidden:
+      return
+
     glTranslate(self.location[0], self.location[1], self.location[2])
     if self.surfaces:
       self.draw()
@@ -219,7 +223,7 @@ class ACObject:
     glBindTexture(GL_TEXTURE_2D, self.texture)
     glCallList(self.displaylist)
 
-  def genList(self, render = False):
+  def __genList(self, render = False):
     """Generate a displaylist for the object"""
 
     if not render:
