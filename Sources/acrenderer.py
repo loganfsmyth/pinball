@@ -111,6 +111,7 @@ class ACObject:
   def __init__(self, data, renderer):
     self.debug = False
     self.showNormal = False
+    self.useDisplaylist = True
     if data.has_key('name'):
       self.name = data['name']
     self.renderer = renderer
@@ -212,11 +213,10 @@ class ACObject:
   def draw(self):
     """Function to draw the object at the given location"""
     glBindTexture(GL_TEXTURE_2D, self.texture)
-#    if not self.name.startswith('paddle'):
-    glCallList(self.displaylist)
-#    else:
-#      self.__genList(True)
-#      print "RENDER PADDLE"
+    if self.useDisplaylist:
+      glCallList(self.displaylist)
+    else:
+      self.__genList(True)
 
   def __genList(self, render = False):
     """Generate a displaylist for the object"""

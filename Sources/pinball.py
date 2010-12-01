@@ -46,6 +46,8 @@ class Paddle(ACGameObject):
 
     self.calcVerts = []
 
+#    self.useDisplaylist = False
+
   def keyPress(self, dir, key, x, r):
     if (key == 'z' and self.side == 1) or (key == '/' and self.side == -1):
       self.direction = -1*dir
@@ -68,7 +70,9 @@ class Paddle(ACGameObject):
     return self.calcVerts
 
   def hitBy(self, object, surface):
-    object.velocity
+    mult = 0.2
+    object.velocity = list(self.vecAdd(object.velocity, self.vecMult(surface['norm'], mult)))
+    ACGameObject.hitBy(self, object, surface)
 
 class Ball(ACGameObject):
   def __init__(self, dat, r):
@@ -81,7 +85,7 @@ class Ball(ACGameObject):
 #    self.velocity[2] = -3.5
 
     self.location[0] = 0.20
-    self.location[2] = 0.05
+    self.location[2] = -0.25
 #    self.velocity[0] = -1.2
     self.velocity[2] = 0.0
 
