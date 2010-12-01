@@ -4,12 +4,6 @@ TODO:
  * Paddle collision
  * Points Collection
  * Point rendering
- * Drop/drop-item object
- * Follow curved walls properly
-
-
-
-
 
 
 """
@@ -133,7 +127,7 @@ class Ball(ACGameObject):
 
       self.velocity = list(self.vecMult(new_vel, object.collisionFactor))
 
-      print "Hit %s %s" % (object.name, object.hidden)
+#      print "Hit %s %s" % (object.name, object.hidden)
 
       object.hitBy(self, surface)
 
@@ -244,11 +238,11 @@ class Drop(ACGameObject):
     if self.count == 3:
       for o in self.subobjects:
         o.hidden = False
-      print "Unhid all drops"
 
 class DropItem(ACGameObject):
   def __init__(self, data, r):
     ACGameObject.__init__(self, data, r)
+    self.collisionFactor = 0.7
 
   def hitBy(self, obj, surface):
     self.hidden = True
