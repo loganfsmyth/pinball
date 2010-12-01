@@ -7,8 +7,8 @@ class Pinball(ACGame):
   def __init__(self):
     
 
-    ACGame.__init__(self, 'Pinball.ac', title="Pinball!!!")
-#    ACGame.__init__(self, 'Pinball0_3.ac', title="Pinball!!!")
+#    ACGame.__init__(self, 'Pinball.ac', title="Pinball!!!")
+    ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
 
   def render(self): 
     glTranslatef(0.0, 0.0, -3.0)
@@ -44,6 +44,8 @@ class Paddle(ACGameObject):
 
     ACGameObject.__init__(self, dat, r)
 
+    self.calcVerts = []
+
   def keyPress(self, dir, key, x, r):
     if (key == 'z' and self.side == 1) or (key == '/' and self.side == -1):
       self.direction = -1*dir
@@ -51,16 +53,26 @@ class Paddle(ACGameObject):
   def update(self, time):
     if (self.angle < self.max_angle and self.direction == 1) or (self.angle > 0 and self.direction == -1):
       self.angle += self.direction*time.microseconds/2000.0
+      self.calcVerts = []
 
   def draw(self):
     glRotate(self.side * self.angle, 0.0, 1.0, 0.0)
     ACGameObject.draw(self)
     glRotate(-1*self.side*self.angle, 0.0, 1.0, 0.0)
 
+  def getVertices(self):
+    if not self.calcVerts:
+      a = self.angle*math.pi/180
+      self.calcVerts = [(v[0]*math.cos(a) - v[2]*math.sin(a), v[1], v[2]*math.cos(a) - v[0]*math.sin(a)) for v in self.vertices]
+
+    return self.calcVerts
+
+  def hitBy(self, object, surface):
+    object.velocity
+
 class Ball(ACGameObject):
   def __init__(self, dat, r):
     ACGameObject.__init__(self, dat, r)
-    self.velocity = [0, 0, 0]
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
     print "Ball Radius: %f" % self.radius
 
@@ -68,35 +80,38 @@ class Ball(ACGameObject):
 #    self.location[2] = 1.00
 #    self.velocity[2] = -3.5
 
-    self.location[0] = 0.15
-    self.location[2] = -0.65
-    self.velocity[0] = -1.2
-    self.velocity[2] = 0.2
+    self.location[0] = 0.20
+    self.location[2] = 0.05
+#    self.velocity[0] = -1.2
+    self.velocity[2] = 0.0
 
   def update(self, time):
-#    print "FPS: %f" % (1000000/time.microseconds)
-#    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
 
-    self.location = self.vecAdd(self.location, self.vecMult(self.velocity, time.microseconds/1000000.0))
-
+    speed = self.vecMag(self.velocity) 
+    # Check for collision based on current position and velocity
     (surface, object, distance) = self.getClosestSurface()
-    if object:
-      object.high = True
-#      print "HIT %s" % object.name
+    if object and speed > 0.001:
       n = surface['norm']
 
       # move back along path to just before collision with surface
       mv =  0.004 + self.radius - distance
-      self.location = self.vecSub(self.location, self.vecMult(self.velocity, mv/self.vecMag(self.velocity)))
+      self.location = self.vecSub(self.location, self.vecMult(self.velocity, mv/speed))
 
       # calculate new velocity reflected off the surface normal
-      mag = -2*self.vecDot(n, self.velocity)/self.vecMag(self.velocity)
+      mag = -2*self.vecDot(n, self.velocity)/speed
       new_vel = self.vecAdd(self.velocity, self.vecMult(n,mag))
 
       # set new velocity and scale, plus account for velocity changes during previous vector calculations
-      new_vel = self.vecMult(new_vel, self.vecMag(self.velocity)/self.vecMag(new_vel))
+      new_vel = self.vecMult(new_vel, speed/self.vecMag(new_vel))
 
-      self.velocity = list(self.vecMult(new_vel, 1.0))
+      self.velocity = list(self.vecMult(new_vel, object.collisionFactor))
+
+      object.hitBy(self, surface)
+
+    # Apply some gravity
+    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
+
+    ACGameObject.update(self, time)
 
   def getClosestSurface(self, objs = None):
     """Get the closest surface and object based on a list of objects"""
@@ -130,15 +145,16 @@ class Ball(ACGameObject):
     if dbg: print "Checking surfaces of %s" % obj.name
 
     (surface, dist) = (None, float('inf'))
-    if len(obj.surfaces) == 0 or (hasattr(obj, 'name') and obj.name == 'polyline'):
+    if len(obj.surfaces) < 4 or obj.name == 'polyline':
       return (surface, dist)
     loc = self.location
-    obj.high = False
+
+    verts = obj.getVertices()
 
     outside = False
     for s in obj.surfaces:
       if dbg: print "Checking %s" % (s, )
-      p1 = obj.vertices[s['refs'][0][0]]
+      p1 = verts[s['refs'][0][0]]
       n = s['norm']
       # Check if the surface's normal is horizontal
       if abs(n[1]) > 0.05:

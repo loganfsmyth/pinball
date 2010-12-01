@@ -26,6 +26,11 @@ class ACGame(ACRenderer):
 class ACGameObject(ACObject):
   def __init__(self, data, r):
     ACObject.__init__(self, data, r)
+
+    self.velocity = [0, 0, 0]
+
+    self.collisionFactor = 0.8
+
     if hasattr(self, 'keyPress') and hasattr(self.keyPress, '__call__'):
       r.keypress.append(self.keyPress)
 
@@ -36,4 +41,17 @@ class ACGameObject(ACObject):
       glTranslate(0.0, 0.5, 0.0)
       glCallList(self.displaylist)
       glTranslate(0.0, -0.5, 0.0)
+      self.high = False
+
+  def getVertices(self):
+    return self.vertices
+
+  def hitBy(self, object, surface):
+    self.high = True
+    print "%s got hit" % (self.name, )
+
+  def update(self, time):
+    self.location = self.vecAdd(self.location, self.vecMult(self.velocity, time.microseconds/1000000.0))
+
+    [child.update(time) for child in self.subobjects]
 

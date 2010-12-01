@@ -212,14 +212,18 @@ class ACObject:
   def draw(self):
     """Function to draw the object at the given location"""
     glBindTexture(GL_TEXTURE_2D, self.texture)
+#    if not self.name.startswith('paddle'):
     glCallList(self.displaylist)
+#    else:
+#      self.__genList(True)
+#      print "RENDER PADDLE"
 
-  def __genList(self):
+  def __genList(self, render = False):
     """Generate a displaylist for the object"""
 
-    self.displaylist = glGenLists(1)
-
-    glNewList(self.displaylist, GL_COMPILE)
+    if not render:
+      self.displaylist = glGenLists(1)
+      glNewList(self.displaylist, GL_COMPILE)
     for surface in self.surfaces:
       glBegin(GL_POLYGON)
 
@@ -227,7 +231,7 @@ class ACObject:
       if surface.has_key('norm'):
         glNormal3dv(surface['norm'])
       mat = surface['material']
-      
+
       # Set material properties for this surface
       glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  mat['rgb'] + (mat['trans'],))
       glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION,  mat['emis'] + (1,))
@@ -251,7 +255,8 @@ class ACObject:
         glVertex3dv(self.vecMult(surface['norm'], 0.05))
         glEnd()
         glTranslate(-1*c[0], -1*c[1], -1*c[2])
-    glEndList()
+    if not render:
+      glEndList()
 
   def __loadTexture(self, file):
     """Loads the object's texture file into an openGL texture object"""
