@@ -26,7 +26,7 @@ class Pinball(ACGame):
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
 
     self.ball.location = list(self.starting['start'].position)
-    self.ball.velocity = [0, 0, -2.8]
+    self.ball.velocity = [0, 0, -3.2]
 
   def render(self): 
     glTranslatef(0.0, 0.0, -3.0)
@@ -47,6 +47,8 @@ class Pinball(ACGame):
         return Drop
       elif dat['name'] == 'dropitem':
         return DropItem
+      elif dat['name'] == 'bumperbase':
+        return Bumper
       elif dat['name'].startswith('start'):
         return StartPoint
 
@@ -72,8 +74,11 @@ class Paddle(ACGameObject):
     if (key == 'z' and self.side == 1) or (key == '/' and self.side == -1):
       self.direction = -1*dir
 
+  def __inMotion(self):
+    return (self.angle < self.max_angle and self.direction == 1) or (self.angle > 0 and self.direction == -1)
+
   def update(self, time):
-    if (self.angle < self.max_angle and self.direction == 1) or (self.angle > 0 and self.direction == -1):
+    if self.__inMotion():
       self.angle += self.direction*time.microseconds/2000.0
       self.calcVerts = []
 
@@ -84,7 +89,9 @@ class Paddle(ACGameObject):
 
   def draw(self):
     glRotate(self.side * self.angle, 0.0, 1.0, 0.0)
-    ACGameObject.draw(self)
+    glBindTexture(GL_TEXTURE_2D, self.texture)
+    self.genList(True)
+    #ACGameObject.draw(self)
     glRotate(-1*self.side*self.angle, 0.0, 1.0, 0.0)
 
   def getVertices(self):
@@ -95,8 +102,9 @@ class Paddle(ACGameObject):
     return self.calcVerts
 
   def hitBy(self, object, surface):
-    mult = 0.2
-    object.velocity = list(self.vecAdd(object.velocity, self.vecMult(surface['norm'], mult)))
+    if self.__inMotion():
+      mult = 0.2
+      object.velocity = list(self.vecAdd(object.velocity, self.vecMult(surface['norm'], mult)))
     ACGameObject.hitBy(self, object, surface)
 
 class Ball(ACGameObject):
@@ -105,16 +113,6 @@ class Ball(ACGameObject):
     r.ball = self
 
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
-    print "Ball Radius: %f" % self.radius
-
-#    self.location[0] = 0.68
-#    self.location[2] = -0.80
-#    self.velocity[2] = 0.1
-
-#    self.location[0] = 0.20
-#    self.location[2] += 0.6
-#    self.velocity[0] = 0.8
-#    self.velocity[2] = 0.5
 
   def update(self, time):
 
@@ -229,13 +227,21 @@ class Peg(ACGameObject):
   pass
 
 class RubberTriangle(ACGameObject):
-  pass
+  def __init__(self, data, r):
+    ACGameObject.__init__(self, data, r)
+    self.collisionFactor = 1.2
+
 
 class Drop(ACGameObject):
   pass
 
 class DropItem(ACGameObject):
   pass
+
+class Bumper(ACGameObject):
+  def __init__(self, data, r):
+    ACGameObject.__init__(self, data, r)
+    self.collisionFactor = 1.2
 
 class StartPoint(ACGameObject):
   def __init__(self, data, renderer):

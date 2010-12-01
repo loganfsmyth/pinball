@@ -132,7 +132,7 @@ class ACObject:
     self.subobjects = []
 
     self.__processSurfaces()
-    self.__genList()
+    self.genList()
 
   def __processSurfaces(self):
     """Go through the object's surfaces and calculate normals, centers and object centroid"""
@@ -219,12 +219,13 @@ class ACObject:
     glBindTexture(GL_TEXTURE_2D, self.texture)
     glCallList(self.displaylist)
 
-  def __genList(self, render = False):
+  def genList(self, render = False):
     """Generate a displaylist for the object"""
 
     if not render:
       self.displaylist = glGenLists(1)
       glNewList(self.displaylist, GL_COMPILE)
+
     for surface in self.surfaces:
       glBegin(GL_POLYGON)
 
