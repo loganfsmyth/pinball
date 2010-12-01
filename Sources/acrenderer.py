@@ -51,6 +51,7 @@ class ACRenderer:
     for obj in objs:
       inst = self.getObjectClass(obj)(obj, self)
       inst.parent = parent
+      inst.position = parent and list(parent.vecAdd(parent.position, inst.location)) or inst.location
       inst.subobjects = self.createObjects(obj['kids'], inst)
       objects.append(inst)
 
@@ -114,6 +115,8 @@ class ACObject:
     self.useDisplaylist = True
     if data.has_key('name'):
       self.name = data['name']
+    else:
+      self.name = '__blank__'
     self.renderer = renderer
     self.moving = False
     self.location = list(data['loc'])

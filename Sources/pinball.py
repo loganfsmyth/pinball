@@ -1,14 +1,31 @@
+"""
 
+TODO:
+ * Paddle collision
+ * Points Collection
+ * Point rendering
+ * Drop/drop-item object
+ * Follow curved walls properly
+
+
+
+
+
+
+"""
 import math
 
 from acgame import *
 
 class Pinball(ACGame):
   def __init__(self):
-    
+    self.starting = {}
+    self.ball = None
 
 #    ACGame.__init__(self, 'Pinball.ac', title="Pinball!!!")
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
+
+    self.ball.location = list(self.starting['start4'].position)
 
   def render(self): 
     glTranslatef(0.0, 0.0, -3.0)
@@ -29,6 +46,8 @@ class Pinball(ACGame):
         return Drop
       elif dat['name'] == 'dropitem':
         return DropItem
+      elif dat['name'].startswith('start'):
+        return StartPoint
 
     return ACGame.getObjectClass(self, dat)
 
@@ -77,17 +96,19 @@ class Paddle(ACGameObject):
 class Ball(ACGameObject):
   def __init__(self, dat, r):
     ACGameObject.__init__(self, dat, r)
+    r.ball = self
+
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
     print "Ball Radius: %f" % self.radius
 
 #    self.location[0] = 0.68
-#    self.location[2] = 1.00
-#    self.velocity[2] = -3.5
+#    self.location[2] = -0.80
+#    self.velocity[2] = 0.1
 
-    self.location[0] = 0.20
-    self.location[2] = -0.25
-#    self.velocity[0] = -1.2
-    self.velocity[2] = 0.0
+#    self.location[0] = 0.20
+#    self.location[2] -= 2.25
+#    self.velocity[0] = -0.8
+#    self.velocity[2] = -0.5
 
   def update(self, time):
 
@@ -133,9 +154,9 @@ class Ball(ACGameObject):
       v = self.getClosestObjectSurface(o)
       if v[1] < dist:
         (surface, object, dist) = (v[0], o, v[1])
-
       # Then check the object's children
       v = self.getClosestSurface(o.subobjects)
+
       if v[2] < dist:
         (surface, object, dist) = v
 
@@ -144,12 +165,11 @@ class Ball(ACGameObject):
   def getClosestObjectSurface(self, obj):
     """Get the closest surface of a given object"""
     dbg = self.debug
-    pad = False
 
     if dbg: print "Checking surfaces of %s" % obj.name
 
     (surface, dist) = (None, float('inf'))
-    if len(obj.surfaces) < 4 or obj.name == 'polyline':
+    if len(obj.surfaces) < 3:
       return (surface, dist)
     loc = self.location
 
@@ -166,7 +186,7 @@ class Ball(ACGameObject):
         continue
 
       # Calculate signed distance from the plane
-      D = ((n[0]*loc[0] + n[1]*loc[1] + n[2]*loc[2]) - (n[0]*(obj.location[0]+p1[0]) + n[1]*(obj.location[1]+p1[1]) + n[2]*(obj.location[2] + p1[2])))
+      D = ((n[0]*loc[0] + n[1]*loc[1] + n[2]*loc[2]) - (n[0]*(obj.position[0]+p1[0]) + n[1]*(obj.position[1]+p1[1]) + n[2]*(obj.position[2] + p1[2])))
 
       if dbg: print "Distance: %f Current: %f" % (D, dist)
 
@@ -199,6 +219,11 @@ class Drop(ACGameObject):
 
 class DropItem(ACGameObject):
   pass
+
+class StartPoint(ACGameObject):
+  def __init__(self, data, renderer):
+    ACGameObject.__init__(self, data, renderer);
+    renderer.starting[self.name] = self
 
 if __name__ == '__main__':
   glutInit(sys.argv)
