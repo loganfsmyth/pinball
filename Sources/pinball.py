@@ -72,14 +72,19 @@ class Pinball(ACGame):
     self.ball_count -= 1
 
   def render(self):
+
+    
     if self.viewMode == 0:
+      # 45 degree view
       glTranslatef(0.0, 0.0, -3.0)
       glRotated(45.0, 1.0, 0.0, 0.0)
     elif self.viewMode == 1:
+      # rotate to look straight down at the board
       glTranslatef(0.0, 0.0, -3.0)
       glRotated(90.0, 1.0, 0.0, 0.0)
       pass
     elif self.viewMode == 2:
+      # Make the view follow the ball
       v = self.ball.velocity
       factor = (v[2] > 0) and math.pi or 0
       a = math.atan(v[0]/v[2]) + factor
@@ -90,12 +95,18 @@ class Pinball(ACGame):
 
     ACGame.render(self)
 
-    if self.done:
-      self.displayString((0.0, 0.0, -4.0), "Press space to Start")
-    elif self.ball.hidden:
-      self.displayString((0.0, 0.0, -4.0), "Press space to continue")
+    self.set2D()
 
-    self.displayString((0.0, 0.0, -6.0), "Remaining: %d"%self.ball_count)
+    if self.done:
+      self.displayString((-2.5, 0.0, 14.0), "Press space to Start")
+    elif self.ball.hidden:
+      self.displayString((-2.5, 0.0, 14.0), "Press space to continue")
+
+    self.displayString((-2.5, 0.0, 22.0), "Remaining: %d" % self.ball_count)
+    self.displayString((-2.5, 0.0, 19.0), "Score: %d" % self.score)
+
+
+    self.displayString((2.0, 0.0, 22.0), "FPS: %s" % self.fps)
 
   def getObjectClass(self, dat):
     if dat.has_key('name'):
@@ -120,6 +131,15 @@ class Pinball(ACGame):
 
     return ACGame.getObjectClass(self, dat)
 
+
+  def set2D(self):
+    height = 2.4   # rough estimate of model depth
+    wid = height*self.width/self.height
+    glOrtho(-wid/2, wid/2, -height/2, height/2, -20, 20)
+
+  def set3D(self):
+    gluPerspective(45.0, float(self.width)/float(self.height), 0.1, 100.0)
+
   def reshapeFunc(self, w, h):
     """Handle the window resize event"""
     self.width = w
@@ -132,12 +152,10 @@ class Pinball(ACGame):
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
 
-    if self.viewMode == 0 or self.viewMode == 2:
-      gluPerspective(45.0, float(w)/float(h), 0.1, 100.0)
-    elif self.viewMode == 1:
-      height = 2.4
-      wid = height*self.width/self.height
-      glOrtho(-wid/2, wid/2, -height/2, height/2, -20, 20)
+    if self.viewMode == 1:
+      self.set2D()
+    else:
+      self.set3D()
 
 
     glMatrixMode(GL_MODELVIEW)

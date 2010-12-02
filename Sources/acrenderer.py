@@ -87,8 +87,8 @@ class ACRenderer:
 #    glMatrixMode(GL_PROJECTION)
 #    glLoadIdentity()
     
-    glOrtho(0, self.width, self.height, 0, -20, 20)
-    self.displayString((0.0, 0.0, -2.0), "Score: %d  FPS: %s" % (self.score, self.fps))
+#    glOrtho(0, self.width, self.height, 0, -20, 20)
+#    self.displayString((0.0, 0.0, -2.0), "Score: %d  FPS: %s" % (self.score, self.fps))
 
 #    glMatrixMode(GL_MODELVIEW)
 #    glLoadIdentity()
