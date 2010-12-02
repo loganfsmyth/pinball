@@ -128,6 +128,8 @@ class Pinball(ACGame):
         return StartPoint
       elif dat['name'] == 'gameover':
         return GameOver
+      elif dat['name'] == 'spinner':
+        return Spinner
 
     return ACGame.getObjectClass(self, dat)
 
@@ -189,6 +191,13 @@ class Pinball(ACGame):
       self.launchKey = None
 
 
+
+
+
+
+
+
+
 class Paddle(ACGameObject):
   def __init__(self, dat, r):
     self.angle = 0
@@ -242,7 +251,7 @@ class Paddle(ACGameObject):
 
   def hitBy(self, object, surface):
     if self.__inMotion():
-      mult = 2.0
+      mult = 1.0
       object.velocity = list(self.vecAdd(object.velocity, self.vecMult(surface['norm'], mult)))
     ACGameObject.hitBy(self, object, surface)
 
@@ -255,6 +264,8 @@ class Ball(ACGameObject):
   def __init__(self, dat, r):
     ACGameObject.__init__(self, dat, r)
     r.ball = self
+
+    self.hidden = True
 
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
 
@@ -270,18 +281,19 @@ class Ball(ACGameObject):
 
       print "Hit %s" % (object.name, )
 
-      # move back along path to just before collision with surface
-      mv =  0.004 + self.radius - distance
-      self.location = self.vecSub(self.location, self.vecMult(self.velocity, mv/speed))
+      if not object.passive:
+        # move back along path to just before collision with surface
+        mv =  0.004 + self.radius - distance
+        self.location = self.vecSub(self.location, self.vecMult(self.velocity, mv/speed))
 
-      # calculate new velocity reflected off the surface normal
-      mag = -2*self.vecDot(n, self.velocity)/speed
-      new_vel = self.vecAdd(self.velocity, self.vecMult(n,mag))
+        # calculate new velocity reflected off the surface normal
+        mag = -2*self.vecDot(n, self.velocity)/speed
+        new_vel = self.vecAdd(self.velocity, self.vecMult(n,mag))
 
-      # set new velocity and scale, plus account for velocity changes during previous vector calculations
-      new_vel = self.vecMult(new_vel, speed/self.vecMag(new_vel))
+        # set new velocity and scale, plus account for velocity changes during previous vector calculations
+        new_vel = self.vecMult(new_vel, speed/self.vecMag(new_vel))
 
-      self.velocity = list(self.vecMult(new_vel, object.collisionFactor))
+        self.velocity = list(self.vecMult(new_vel, object.collisionFactor))
 
       object.hitBy(self, surface)
     else:
@@ -290,7 +302,7 @@ class Ball(ACGameObject):
         self.velocity = list(self.vecMult(self.velocity, 1.5/self.vecMag(self.velocity)))
 
       # Apply some gravity
-      self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/700000
+      self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
 
     ACGameObject.update(self, time)
 
@@ -363,6 +375,9 @@ class Ball(ACGameObject):
     if dbg: print "Final Surface: dist: %f surf:%s" % (dist, surface)
     return (surface, dist)
 
+
+
+
 class Peg(ACGameObject):
   def __init__(self, data, r):
     ACGameObject.__init__(self, data, r)
@@ -418,6 +433,35 @@ class StartPoint(ACGameObject):
 class GameOver(ACGameObject):
   def hitBy(self, obj, surface):
     self.renderer.roundComplete()
+
+
+class Spinner(ACGameObject):
+  def __init__(self, data, renderer):
+    ACGameObject.__init__(self, data, renderer);
+    self.passive = True
+    self.angle = 0
+    self.speed = 0
+
+    self.rot = self.surfaces[3]['norm']
+
+  def hitBy(self, obj, surface):
+    self.speed = 20
+
+  def update(self, time):
+    self.angle += self.speed*10000/time.microseconds
+
+    self.speed -= 0.1
+    if self.speed < 0:
+      self.speed = 0
+
+  def draw(self):
+    r = self.rot
+
+    glRotate(self.angle, r[0], r[1], r[2])
+    ACGameObject.draw(self)
+    glRotate(-1*self.angle, r[0], r[1], r[2])
+
+
 
 if __name__ == '__main__':
   glutInit(sys.argv)

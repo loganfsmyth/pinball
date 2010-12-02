@@ -39,6 +39,7 @@ class ACGameObject(ACObject):
   def __init__(self, data, r):
     ACObject.__init__(self, data, r)
 
+    self.passive = False
     self.points = 0
     self.velocity = [0, 0, 0]
     self.collisionFactor = 0.8
