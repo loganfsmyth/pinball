@@ -3,11 +3,13 @@
 Usage: python pinball.py [options]
 
 Options:
+ -g ..., --game=...     Specify different game model ac file
+ -o ..., --offset=...   The initial offset from the start point x,y
  -m ..., --mode=...     Run the game in a specific view mode (0 = Front angle, 1 = Top view, 2 = Ball View)
  -s ..., --start=...    The number of the starting pad for the ball
  -v ..., --vel=...      An initial velocity x,y
  -h, --help             Display this meun
- -d                     Show debug output
+ -d, --debug            Show debug output
 """
 
 import math
@@ -441,6 +443,8 @@ class Spinner(ACGameObject):
     self.passive = True
     self.angle = 0
     self.speed = 0
+
+    self.points = 1000
 
     self.rot = self.surfaces[3]['norm']
 
