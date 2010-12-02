@@ -14,6 +14,7 @@ from acloader import *
 class ACRenderer:
   def __init__(self, filename, width = 800, height = 600, title = "ACRenderer"):
 
+    self.currenttime = datetime.datetime.now()
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
     glutInitWindowSize(width, height)
     glutInitWindowPosition(100, 100)
@@ -33,7 +34,7 @@ class ACRenderer:
     self.reshapeFunc(width, height)
     self.loaders = self.createObjects(ACLoader(filename).objects)
     self.counter = 0
-    self.currenttime = datetime.datetime.now()
+
     self.animate(0)
 
   def animate(self, arg):

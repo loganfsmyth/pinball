@@ -104,8 +104,11 @@ class Ball(ACGameObject):
 
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
 
+    self.fps = []
+
   def update(self, time):
-    print "FPS: %f" % (1000000/time.microseconds, )
+    self.fps.append(1000000/time.microseconds)
+    print "FPS: %f" % (sum(self.fps)/len(self.fps), )
 
     speed = self.vecMag(self.velocity)
     # Check for collision based on current position and velocity
