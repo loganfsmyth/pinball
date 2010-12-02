@@ -293,10 +293,11 @@ if __name__ == '__main__':
     'mode': 0,
     'start': 0,
     'velocity': [0,0,-3.0],
+    'debug': False,
   }
 
   try:
-    opts, args = getopt.getopt(sys.argv[1:], 'm:s:v:h', ["mode=", "start=", "vel=", "help"])
+    opts, args = getopt.getopt(sys.argv[1:], 'm:s:v:hd', ["mode=", "start=", "vel=", "help", 'debug'])
   except getopt.GetoptError:
     print __doc__
     sys.exit(2)
@@ -312,6 +313,8 @@ if __name__ == '__main__':
     elif opt in ('-h', '--help'):
       print __doc__
       sys.exit()
+    elif opt in ('-d', '--debug'):
+      settings['debug'] = bool(arg)
 
   Pinball(settings).run()
 
