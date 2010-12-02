@@ -15,11 +15,12 @@ class Pinball(ACGame):
   def __init__(self):
     self.starting = {}
     self.ball = None
+    
 
 #    ACGame.__init__(self, 'Pinball.ac', title="Pinball!!!")
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
 
-    self.ball.location = list(self.starting['start2'].position)
+    self.ball.location = list(self.starting['start4'].position)
 #    self.ball.location[2] -= 0.1
 #    self.ball.velocity = [0.5, 0, 0.1]
 
@@ -46,6 +47,8 @@ class Pinball(ACGame):
         return Bumper
       elif dat['name'].startswith('start'):
         return StartPoint
+      elif dat['name'] == 'score':
+        return Scoreboard
 
     return ACGame.getObjectClass(self, dat)
 
@@ -106,9 +109,9 @@ class Ball(ACGameObject):
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
 
   def update(self, time):
-#    print "FPS: %f" % (1000000/time.microseconds, )
+    print "FPS: %f" % (1000000/time.microseconds, )
 
-    speed = self.vecMag(self.velocity) 
+    speed = self.vecMag(self.velocity)
     # Check for collision based on current position and velocity
     (surface, object, distance) = self.getClosestSurface()
     if object and not speed == 0.0:
@@ -131,9 +134,11 @@ class Ball(ACGameObject):
 
       object.hitBy(self, surface)
 
-    # Apply some gravity
+    # Cap the speed so it doesn't get too crazy
+    if speed > 1.5:
+      self.velocity = list(self.vecMult(self.velocity, 1.5/self.vecMag(self.velocity)))
 
-#    self.velocity[0] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
+    # Apply some gravity
     self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
 
     ACGameObject.update(self, time)
@@ -220,22 +225,31 @@ class Ball(ACGameObject):
     return (surface, dist)
 
 class Peg(ACGameObject):
-  pass
+  def __init__(self, data, r):
+    ACGameObject.__init__(self, data, r)
+    self.collisionFactor = 0.95
+    self.points = 100
+
 
 class RubberTriangle(ACGameObject):
   def __init__(self, data, r):
     ACGameObject.__init__(self, data, r)
     self.collisionFactor = 1.2
+    self.points = 50
 
 
 class Drop(ACGameObject):
   def __init__(self, data, r):
     ACGameObject.__init__(self, data, r)
     self.count = 0
+
   def childHit(self, child):
     self.count += 1
+    child.points = 500
 
     if self.count == 3:
+      child.points = 5000
+      self.count = 0
       for o in self.subobjects:
         o.hidden = False
 
@@ -247,16 +261,24 @@ class DropItem(ACGameObject):
   def hitBy(self, obj, surface):
     self.hidden = True
     self.parent.childHit(self)
+    ACGameObject.hitBy(self, obj, surface)
 
 class Bumper(ACGameObject):
   def __init__(self, data, r):
     ACGameObject.__init__(self, data, r)
     self.collisionFactor = 1.2
+    self.points = 200
 
 class StartPoint(ACGameObject):
   def __init__(self, data, renderer):
     ACGameObject.__init__(self, data, renderer);
     renderer.starting[self.name] = self
+
+class Scoreboard(ACScoreObject):
+  def __init__(self, data, renderer):
+    ACScoreObject.__init__(self, data, renderer);
+
+
 
 if __name__ == '__main__':
   glutInit(sys.argv)
