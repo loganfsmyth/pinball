@@ -160,7 +160,9 @@ class ACObject:
 
   def processSurfaces(self):
     """Go through the object's surfaces and calculate normals, centers and object centroid"""
+
     vs = self.getVertices()
+
     nv = len(vs)
     if nv == 0:
       return
@@ -256,6 +258,8 @@ class ACObject:
       self.displaylist = glGenLists(1)
       glNewList(self.displaylist, GL_COMPILE)
 
+    verts = self.getVertices()
+
     for surface in self.surfaces:
       glBegin(GL_POLYGON)
 
@@ -274,7 +278,7 @@ class ACObject:
       # render the surface polygon itself
       for ref in surface['refs']:
         glTexCoord2d(ref[1], ref[2])
-        glVertex3dv(self.vertices[ref[0]])
+        glVertex3dv(verts[ref[0]])
       glEnd()
 
       # If enabled, render the surface's normals 

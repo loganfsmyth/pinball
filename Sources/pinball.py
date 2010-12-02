@@ -10,13 +10,6 @@ Options:
  -d                     Show debug output
 """
 
-"""
-TODO:
- * Paddle collision
- * Point rendering
-
-
-"""
 import math
 import getopt
 from acgame import *
@@ -192,6 +185,8 @@ class Paddle(ACGameObject):
 
     ACGameObject.__init__(self, dat, r)
 
+    self.showNormal = True
+
   def keyPress(self, dir, key, x, y):
     if self.waiting:
       self.key = key
@@ -220,9 +215,10 @@ class Paddle(ACGameObject):
 
   def getVertices(self):
     if not self.calcVerts:
-      a = self.angle*math.pi/180
+      a = -1*self.side*self.angle*math.pi/180
       self.calcVerts = [(v[0]*math.cos(a) - v[2]*math.sin(a), v[1], v[2]*math.cos(a) + v[0]*math.sin(a)) for v in self.vertices]
       self.processSurfaces()
+
 
     return self.calcVerts
 
@@ -254,7 +250,7 @@ class Ball(ACGameObject):
     if object :
       n = surface['norm']
 
-#      print "Hit %s" % (object.name, )
+      print "Hit %s" % (object.name, )
 
       # move back along path to just before collision with surface
       mv =  0.004 + self.radius - distance
@@ -291,7 +287,6 @@ class Ball(ACGameObject):
     for o in objs:
       if o == self or o.hidden:
         continue
-
       # Check the object first
       v = self.getClosestObjectSurface(o)
       if abs(v[1]) < abs(dist):
