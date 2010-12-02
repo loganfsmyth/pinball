@@ -139,10 +139,13 @@ class Pinball(ACGame):
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
 
-#    if self.viewMode == 0 or self.viewMode == 2:
-    gluPerspective(45.0, float(w)/float(h), 0.1, 100.0)
-#    elif self.viewMode == 1:
-#      gluOrtho2D(0, w, 0, h)
+    if self.viewMode == 0 or self.viewMode == 2:
+      gluPerspective(45.0, float(w)/float(h), 0.1, 100.0)
+    elif self.viewMode == 1:
+      height = 2.4
+      wid = height*self.width/self.height
+      glOrtho(-wid/2, wid/2, -height/2, height/2, -20, 20)
+
 
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
