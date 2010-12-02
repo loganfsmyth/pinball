@@ -27,19 +27,53 @@ class Pinball(ACGame):
     self.ball = None
     self.viewMode = settings['mode'] # 0 = angle, 1 = top, 2 = ball view
     self.paddles = {}
-
+    self.done = True
+    self.ball_count = 0
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
-    self.ball.location = list(self.ball.vecAdd(self.starting['start%d'%settings['start']].position, settings['offset']))
-    self.ball.velocity = settings['velocity']
+    self.startVelocity = settings['velocity']
+    self.startLocation = self.starting['start%d'%settings['start']].position
+    self.startOffset = settings['offset']
+
 
     menu = glutCreateMenu(self.paddleSetKey)
     glutAddMenuEntry("Change Right Key", 1)
     glutAddMenuEntry("Change Left Key", -1)
-    
+
     glutAttachMenu(GLUT_RIGHT_BUTTON)
 
     self.paddles['l'].key = settings['keys']['l']
     self.paddles['r'].key = settings['keys']['r']
+
+    self.gameOver()
+
+  def gameOver(self):
+    self.done = True
+    self.ball.hidden = True
+    self.ball_count = 5
+
+  def nextBall(self):
+    self.done = False
+    self.ball.location = list(self.ball.vecAdd(self.startLocation, self.startOffset))
+    self.ball.velocity = list(self.startVelocity)
+    self.ball.hidden = False
+
+  def roundComplete(self):
+    self.ball.hidden = True
+
+    if self.ball_count == 0:
+      self.gameOver()
+
+  def roundStart(self):
+    if self.done:
+      self.ball_count = 5
+      self.score = 0
+      self.nextBall()
+    elif (not self.ball.hidden) and self.ball_count == 0:
+      self.roundComplete()
+    else:
+      self.nextBall()
+ 
+    self.ball_count -= 1
 
   def render(self):
     if self.viewMode == 0:
@@ -60,6 +94,13 @@ class Pinball(ACGame):
 
     ACGame.render(self)
 
+    if self.done:
+      self.displayString((0.0, 0.0, -4.0), "Press space to Start")
+    elif self.ball.hidden:
+      self.displayString((0.0, 0.0, -4.0), "Press space to continue")
+
+    self.displayString((0.0, 0.0, -6.0), "Remaining: %d"%self.ball_count)
+
   def getObjectClass(self, dat):
     if dat.has_key('name'):
       if dat['name'].startswith('paddle'):
@@ -78,6 +119,8 @@ class Pinball(ACGame):
         return Bumper
       elif dat['name'].startswith('start'):
         return StartPoint
+      elif dat['name'] == 'gameover':
+        return GameOver
 
     return ACGame.getObjectClass(self, dat)
 
@@ -106,7 +149,7 @@ class Pinball(ACGame):
       self.viewMode = (self.viewMode + 1)%3
       self.reshapeFunc(self.width, self.height)
     elif key == ' ':
-      # Launch the ball
+      self.roundStart()
       pass
 
     ACGame.keyDown(self, key, x, y)
@@ -192,6 +235,8 @@ class Ball(ACGameObject):
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
 
   def update(self, time):
+    if self.hidden:
+      return
 
     speed = self.vecMag(self.velocity)
     # Check for collision based on current position and velocity
@@ -199,13 +244,7 @@ class Ball(ACGameObject):
     if object :
       n = surface['norm']
 
-      print "Hit %s" % (object.name, )
-
-#      self.debug = True
-#      v = self.getClosestObjectSurface(object)
-#      print v[0]
-
-#      self.debug = False
+#      print "Hit %s" % (object.name, )
 
       # move back along path to just before collision with surface
       mv =  0.004 + self.radius - distance
@@ -219,9 +258,6 @@ class Ball(ACGameObject):
       new_vel = self.vecMult(new_vel, speed/self.vecMag(new_vel))
 
       self.velocity = list(self.vecMult(new_vel, object.collisionFactor))
-
-
-
 
       object.hitBy(self, surface)
     else:
@@ -239,20 +275,12 @@ class Ball(ACGameObject):
     if objs == None:
       objs = self.renderer.loaders
 
-    dbg = False
-
     (surface, object, dist) = (None, None, float('inf'))
 
     # Check every object to find which has the closest surface
     for o in objs:
       if o == self or o.hidden:
         continue
-
-      if o.name == 'paddle-r':
-#        self.debug = True
-#        print "-------------------------------"
-#        print "Ball at %s" % (self.position, )
-        dbg = True
 
       # Check the object first
       v = self.getClosestObjectSurface(o)
@@ -263,10 +291,6 @@ class Ball(ACGameObject):
 
       if abs(v[2]) < abs(dist):
         (surface, object, dist) = v
-
-      if dbg:
-        dbg = False
-        self.debug = False
 
     return (surface, object, dist)
 
@@ -365,8 +389,12 @@ class StartPoint(ACGameObject):
   def __init__(self, data, renderer):
     ACGameObject.__init__(self, data, renderer);
     renderer.starting[self.name] = self
+  def draw(self):
+    pass
 
-
+class GameOver(ACGameObject):
+  def hitBy(self, obj, surface):
+    self.renderer.roundComplete()
 
 if __name__ == '__main__':
   glutInit(sys.argv)
