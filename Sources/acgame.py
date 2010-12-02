@@ -14,8 +14,13 @@ class ACGame(ACRenderer):
     glLightfv(GL_LIGHT2, GL_AMBIENT, (0.2, 0.2, 0.2, 1.0))
     glLightfv(GL_LIGHT2, GL_DIFFUSE, (0.5, 0.5, 0.5, 1.0))
     glLightfv(GL_LIGHT2, GL_SPECULAR, (1.0, 1.0, 1.0, 1.0))
-    glLightfv(GL_LIGHT2, GL_POSITION, (0, 4.24, 4.24))
+
     glEnable(GL_LIGHT2)
+
+  def render(self):
+    glLightfv(GL_LIGHT2, GL_POSITION, (0, 4.24, 4.24))
+
+    ACRenderer.render(self)
 
   def keyFunc(self, direction, key, x, y):
     [f(direction, key, x, y) for f in self.keypress]
