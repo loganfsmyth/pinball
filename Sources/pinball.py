@@ -2,7 +2,6 @@
 
 TODO:
  * Paddle collision
- * Points Collection
  * Point rendering
 
 
@@ -15,14 +14,11 @@ class Pinball(ACGame):
   def __init__(self):
     self.starting = {}
     self.ball = None
-    
 
-#    ACGame.__init__(self, 'Pinball.ac', title="Pinball!!!")
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
 
-    self.ball.location = list(self.starting['start4'].position)
-#    self.ball.location[2] -= 0.1
-#    self.ball.velocity = [0.5, 0, 0.1]
+    self.ball.location = list(self.starting['start'].position)
+    self.ball.velocity = [0.0, 0, -3.0]
 
   def render(self): 
     glTranslatef(0.0, 0.0, -3.0)
@@ -133,13 +129,13 @@ class Ball(ACGameObject):
 #      print "Hit %s %s" % (object.name, object.hidden)
 
       object.hitBy(self, surface)
+    else:
+      # Cap the speed so it doesn't get too crazy
+      if False and speed > 1.5:
+        self.velocity = list(self.vecMult(self.velocity, 1.5/self.vecMag(self.velocity)))
 
-    # Cap the speed so it doesn't get too crazy
-    if speed > 1.5:
-      self.velocity = list(self.vecMult(self.velocity, 1.5/self.vecMag(self.velocity)))
-
-    # Apply some gravity
-    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
+      # Apply some gravity
+      self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
 
     ACGameObject.update(self, time)
 
