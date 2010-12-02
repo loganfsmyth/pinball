@@ -29,9 +29,6 @@ class ACGame(ACRenderer):
 
   def addPoints(self, points):
     self.score += points
-    print self.score
-
-  
 
 class ACGameObject(ACObject):
   def __init__(self, data, r):
@@ -57,8 +54,6 @@ class ACGameObject(ACObject):
     return self.vertices
 
   def hitBy(self, object, surface):
-#    self.high = True
-    print "%s got hit" % (self.name, )
     self.renderer.addPoints(self.points)
 
   def update(self, time):

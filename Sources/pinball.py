@@ -26,18 +26,27 @@ class Pinball(ACGame):
     self.starting = {}
     self.ball = None
     self.viewMode = settings['mode'] # 0 = angle, 1 = top, 2 = ball view
+    self.paddles = {}
 
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
     self.ball.location = list(self.starting['start%d'%settings['start']].position)
     self.ball.velocity = settings['velocity']
+
+    menu = glutCreateMenu(self.paddleSetKey)
+    glutAddMenuEntry("Change Right Key", 1)
+    glutAddMenuEntry("Change Left Key", -1)
+    
+    glutAttachMenu(GLUT_RIGHT_BUTTON)
+
+    print self.paddles
 
   def render(self):
     if self.viewMode == 0:
       glTranslatef(0.0, 0.0, -3.0)
       glRotated(45.0, 1.0, 0.0, 0.0)
     elif self.viewMode == 1:
-#      glTranslatef(0.0, 0.0, -60.0)
-#      glRotated(90.0, 1.0, 0.0, 0.0)
+      glTranslatef(0.0, 0.0, -10.0)
+      glRotated(90.0, 1.0, 0.0, 0.0)
       pass
     elif self.viewMode == 2:
       v = self.ball.velocity
@@ -84,7 +93,7 @@ class Pinball(ACGame):
     glLoadIdentity()
 
     if self.viewMode == 0 or self.viewMode == 2:
-      gluPerspective(45.0, float(w)/float(h), 0.1, 10.0)
+      gluPerspective(45.0, float(w)/float(h), 0.1, 100.0)
     elif self.viewMode == 1:
       gluOrtho2D(0, w, 0, h)
 
@@ -97,7 +106,17 @@ class Pinball(ACGame):
       self.reshapeFunc(self.width, self.height)
 
     ACGame.keyDown(self, key, x, y)
-      
+
+  def paddleSetKey(self, type):
+    if type == 1:
+# right
+      pass
+
+    elif type == -1:
+# left
+      pass
+
+    
 
 class Paddle(ACGameObject):
   def __init__(self, dat, r):
@@ -105,6 +124,8 @@ class Paddle(ACGameObject):
     self.direction = -1
     self.side = dat['name'].endswith('-r') and -1 or 1
     self.max_angle = 40
+
+    r.paddles[dat['name'][-1]] = self
 
     ACGameObject.__init__(self, dat, r)
 
@@ -145,6 +166,11 @@ class Paddle(ACGameObject):
       object.velocity = list(self.vecAdd(object.velocity, self.vecMult(surface['norm'], mult)))
     ACGameObject.hitBy(self, object, surface)
 
+
+
+
+
+
 class Ball(ACGameObject):
   def __init__(self, dat, r):
     ACGameObject.__init__(self, dat, r)
@@ -152,11 +178,7 @@ class Ball(ACGameObject):
 
     self.radius = math.sqrt(sum([i*i for i in self.vertices[0]]))
 
-    self.fps = []
-
   def update(self, time):
-    self.fps.append(1000000/time.microseconds)
-    print "FPS: %f" % (sum(self.fps)/len(self.fps), )
 
     speed = self.vecMag(self.velocity)
     # Check for collision based on current position and velocity
@@ -282,7 +304,7 @@ class RubberTriangle(ACGameObject):
   def __init__(self, data, r):
     ACGameObject.__init__(self, data, r)
     self.collisionFactor = 1.2
-    self.points = 50
+    self.points = 200
 
 
 class Drop(ACGameObject):
@@ -345,7 +367,7 @@ if __name__ == '__main__':
       settings['start'] = int(arg)
     elif opt in ('-v', '--vel'):
       v = arg.split(',')
-      settings['velocity'] = (float(v[0]), 0, float(v[1]))
+      settings['velocity'] = [float(v[0]), 0, float(v[1])]
     elif opt in ('-h', '--help'):
       print __doc__
       sys.exit()

@@ -15,6 +15,7 @@ class ACRenderer:
   def __init__(self, filename, width = 800, height = 600, title = "ACRenderer"):
 
     self.currenttime = datetime.datetime.now()
+    self.fps = 0
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
     glutInitWindowSize(width, height)
     glutInitWindowPosition(100, 100)
@@ -29,7 +30,7 @@ class ACRenderer:
     glEnable(GL_DEPTH_TEST)
     glShadeModel(GL_SMOOTH)
     glEnable(GL_TEXTURE_2D)
-    glEnable(GL_LIGHTING)
+
 
     self.reshapeFunc(width, height)
     self.loaders = self.createObjects(ACLoader(filename).objects)
@@ -43,6 +44,7 @@ class ACRenderer:
     d = time - self.currenttime
     self.currenttime = time
     [l.update(d) for l in self.loaders]
+    self.fps = 1000000/d.microseconds
     self.displayFunc()
     glutTimerFunc(10, self.animate, 0)
 
@@ -75,7 +77,28 @@ class ACRenderer:
 
   def render(self):
     """Render the objects loaded into this renderer"""
+ 
+    glEnable(GL_LIGHTING)
     [l.render() for l in self.loaders]
+
+    glDisable(GL_LIGHTING)
+    glColor3f(0.0, 0.0, 0.0)
+
+#    glMatrixMode(GL_PROJECTION)
+#    glLoadIdentity()
+    
+    glOrtho(0, self.width, self.height, 0, -20, 20)
+    self.displayString((0.0, 0.0, -2.0), "Score: %d  FPS: %s" % (self.score, self.fps))
+
+#    glMatrixMode(GL_MODELVIEW)
+#    glLoadIdentity()
+
+  def displayString(self, pos, str, font = GLUT_BITMAP_HELVETICA_18):
+    glRasterPos3f(pos[0], pos[1], pos[2])
+    for c in str:
+      glutBitmapCharacter(font, ord(c))
+
+
 
   def reshapeFunc(self, w, h):
     """Handle the window resize event"""
