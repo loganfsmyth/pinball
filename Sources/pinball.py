@@ -98,9 +98,10 @@ class Pinball(ACGame):
     elif self.viewMode == 2:
       # Make the view follow the ball
       v = self.ball.velocity
-      factor = (v[2] > 0) and math.pi or 0
-      a = math.atan(v[0]/v[2]) + factor
-      glRotated(a*-180/math.pi, 0.0, 1.0, 0.0)
+      if not v[2] == 0:
+        factor = (v[2] > 0) and math.pi or 0
+        a = math.atan(v[0]/v[2]) + factor
+        glRotated(a*-180/math.pi, 0.0, 1.0, 0.0)
 
       p = self.ball.location
       glTranslatef(-1*p[0], -0.1, -1*p[2])
