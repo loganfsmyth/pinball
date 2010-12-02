@@ -43,8 +43,6 @@ class Pinball(ACGame):
         return Bumper
       elif dat['name'].startswith('start'):
         return StartPoint
-      elif dat['name'] == 'score':
-        return Scoreboard
 
     return ACGame.getObjectClass(self, dat)
 
@@ -272,10 +270,6 @@ class StartPoint(ACGameObject):
   def __init__(self, data, renderer):
     ACGameObject.__init__(self, data, renderer);
     renderer.starting[self.name] = self
-
-class Scoreboard(ACScoreObject):
-  def __init__(self, data, renderer):
-    ACScoreObject.__init__(self, data, renderer);
 
 
 
