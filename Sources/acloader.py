@@ -24,6 +24,7 @@ class ACLoader:
           raise ACFormatError("Error: Expecting material or object")
 
   def __parseMaterial(self, line):
+    """Parse MATERIAL data from a given line, if it is there"""
     if line.startswith('MATERIAL'):
       parts = line.split()
 
@@ -43,6 +44,7 @@ class ACLoader:
       return True
 
   def __parseObject(self, line):
+    """Parse an AC3D object from the line and following lines in the file"""
     if line.startswith('OBJECT'):
       obj = { 'type': line.split()[1], 'loc': (0.0, 0.0, 0.0) , 'verts': [], 'surfaces': [] }
       for line in self.file:
@@ -74,6 +76,7 @@ class ACLoader:
       return obj
 
   def __parseSurface(self):
+    """Read surface data from the current line"""
     header = self.file.next()
     if not header.startswith('SURF'):
       raise ACFormatError("Missing surface header")
@@ -97,6 +100,7 @@ class ACLoader:
     return surf
 
   def __parseVerts(self, num):
+    """Parse vertices"""
     verts = []
     for i in range(num):
       verts.append(tuple([float(x) for x in self.file.next().strip().split()]))
@@ -104,6 +108,7 @@ class ACLoader:
     return verts
 
   def __parseSurfaces(self, num):
+    """Parse surfaces"""
     surfs = []
     for line in range(num):
       surfs.append(self.__parseSurface())
@@ -111,6 +116,7 @@ class ACLoader:
     return surfs
 
   def __parseObjects(self, num):
+    """Parse all objects"""
     objs = []
     for i in range(num):
       objs.append(self.__parseObject(self.file.next()))

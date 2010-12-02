@@ -16,15 +16,20 @@ class ACRenderer:
 
     self.currenttime = datetime.datetime.now()
     self.fps = 0
+    self.wireframe = wireframe
+
+    # setup OpenGL window
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
     glutInitWindowSize(width, height)
     glutInitWindowPosition(100, 100)
     self.window = glutCreateWindow(title)
-    self.wireframe = wireframe
 
+    # Set up glut callbacks
     glutReshapeFunc(self.reshapeFunc)
     glutKeyboardFunc(self.keyDown)
     glutKeyboardUpFunc(self.keyUp)
+
+    #default glut behaviors
     glClearColor(0.2, 0.2, 0.2, 0.0)
     glClearDepth(1.0)
     glDepthFunc(GL_LESS)
@@ -32,13 +37,12 @@ class ACRenderer:
     glShadeModel(GL_SMOOTH)
     glEnable(GL_TEXTURE_2D)
 
-
+    # Trigger resize to set window sizes and opengl context
     self.reshapeFunc(width, height)
+
+    # Load model data and parse into Python objects
     self.loaders = self.createObjects(ACLoader(filename).objects)
-    self.counter = 0
-
-    self.toggle = 0
-
+    self.toggle = 0 # Toggle used to track when to exec display callback
     self.animate(0)
 
   def animate(self, arg):
@@ -46,14 +50,16 @@ class ACRenderer:
     time = datetime.datetime.now()
     d = time - self.currenttime
     self.currenttime = time
-    [l.update(d) for l in self.loaders]
+    [l.update(d) for l in self.loaders] # Update objects
     self.fps = 1000000/d.microseconds
 
     self.toggle += 1
 
     if self.toggle == 2:
       self.toggle = 0
-      self.displayFunc()
+      self.displayFunc()  # Trigger display callback ever two animation cycles
+
+    # schedule this function to run again
     glutTimerFunc(5, self.animate, 0)
 
   def createObjects(self, objs, parent=None):
@@ -85,28 +91,15 @@ class ACRenderer:
 
   def render(self):
     """Render the objects loaded into this renderer"""
- 
+
     glEnable(GL_LIGHTING)
     [l.render() for l in self.loaders]
 
-    glDisable(GL_LIGHTING)
-    glColor3f(0.0, 0.0, 0.0)
-
-#    glMatrixMode(GL_PROJECTION)
-#    glLoadIdentity()
-    
-#    glOrtho(0, self.width, self.height, 0, -20, 20)
-#    self.displayString((0.0, 0.0, -2.0), "Score: %d  FPS: %s" % (self.score, self.fps))
-
-#    glMatrixMode(GL_MODELVIEW)
-#    glLoadIdentity()
-
   def displayString(self, pos, str, font = GLUT_BITMAP_HELVETICA_18):
+    """Render a GLUT font string"""
     glRasterPos3f(pos[0], pos[1], pos[2])
     for c in str:
       glutBitmapCharacter(font, ord(c))
-
-
 
   def reshapeFunc(self, w, h):
     """Handle the window resize event"""
@@ -156,6 +149,8 @@ class ACObject:
     self.type = data['type']
     self.vertices = data['verts']
     self.texture = 0
+
+    # load the texture data from the file
     if data.has_key('texture'):
       self.__loadTexture(data['texture'])
     self.texfile =  data.has_key('texture') and data['texture'] or ''
@@ -169,7 +164,7 @@ class ACObject:
   def processSurfaces(self):
     """Go through the object's surfaces and calculate normals, centers and object centroid"""
 
-    vs = self.getVertices()
+    vs = self.getVertices() # Use vertex function to allow for transformed coorditates from paddle
 
     nv = len(vs)
     if nv == 0:
@@ -211,6 +206,7 @@ class ACObject:
         s['center'] = (0,0,0)
 
   def getVertices(self):
+    """Placeholder vertices lookup"""
     return self.vertices
 
   def vecNorm(self, vec):

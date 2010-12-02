@@ -109,6 +109,9 @@ class Pinball(ACGame):
     # Render the scene now that the view is configured
     ACGame.render(self)
 
+    glDisable(GL_LIGHTING)
+    glColor3f(0.0, 0.0, 0.0)
+
     # render text for score and fps and balls remaining
     self.set2D()
     if self.done:
