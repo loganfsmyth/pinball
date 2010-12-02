@@ -299,13 +299,12 @@ class Ball(ACGameObject):
         self.velocity = list(self.vecMult(new_vel, object.collisionFactor))
 
       object.hitBy(self, surface)
-    else:
-      # Cap the speed so it doesn't get too crazy
-      if False and speed > 10.5:
-        self.velocity = list(self.vecMult(self.velocity, 1.5/self.vecMag(self.velocity)))
-
-      # Apply some gravity
-      self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
+    
+    # Cap the speed so it doesn't get too crazy
+    if False and speed > 3.0:
+      self.velocity = list(self.vecMult(self.velocity, 1.5/self.vecMag(self.velocity)))
+    # Apply some gravity
+    self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
 
     ACGameObject.update(self, time)
 
@@ -391,8 +390,15 @@ class Peg(ACGameObject):
 class RubberTriangle(ACGameObject):
   def __init__(self, data, r):
     ACGameObject.__init__(self, data, r)
-    self.collisionFactor = 1.2
+    self.collisionFactor = 1.0
     self.points = 200
+    
+  def hitBy(self, object, surface):
+    mult = 1.3
+    object.velocity = list(self.vecAdd(object.velocity, self.vecMult(surface['norm'], mult)))
+    ACGameObject.hitBy(self, object, surface)
+
+
 
 
 class Drop(ACGameObject):

@@ -37,6 +37,8 @@ class ACRenderer:
     self.loaders = self.createObjects(ACLoader(filename).objects)
     self.counter = 0
 
+    self.toggle = 0
+
     self.animate(0)
 
   def animate(self, arg):
@@ -46,8 +48,13 @@ class ACRenderer:
     self.currenttime = time
     [l.update(d) for l in self.loaders]
     self.fps = 1000000/d.microseconds
-    self.displayFunc()
-    glutTimerFunc(10, self.animate, 0)
+
+    self.toggle += 1
+
+    if self.toggle == 2:
+      self.toggle = 0
+      self.displayFunc()
+    glutTimerFunc(5, self.animate, 0)
 
   def createObjects(self, objs, parent=None):
     """Create all of the python objects based on object data give"""
