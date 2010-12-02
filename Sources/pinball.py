@@ -22,7 +22,7 @@ class Pinball(ACGame):
     self.paddles = {}
     self.done = True
     self.ball_count = 0
-    ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
+    ACGame.__init__(self, settings['gamefile'], title="Pinball!!!")
     self.startVelocity = settings['velocity']
     self.startLocation = self.starting['start%d'%settings['start']].position
     self.startOffset = settings['offset']
@@ -475,11 +475,12 @@ if __name__ == '__main__':
       'l': 'z',
       'r': '/',
       'fire': ' ',
-    }
+    },
+    'gamefile': 'Pinball0_5.ac',
   }
 
   try:
-    opts, args = getopt.getopt(sys.argv[1:], 'm:s:v:o:hd', ["mode=", "start=", "vel=", "offset=", "help", 'debug'])
+    opts, args = getopt.getopt(sys.argv[1:], 'g:m:s:v:o:hd', ["game=", "mode=", "start=", "vel=", "offset=", "help", 'debug'])
   except getopt.GetoptError:
     print __doc__
     sys.exit(2)
@@ -495,6 +496,8 @@ if __name__ == '__main__':
     elif opt in ('-o', '--offset'):
       o = arg.split(',')
       settings['offset'] = [float(o[0]), 0, float(o[1])]
+    elif opt in ('-g', '--game'):
+      settings['gamefile'] = arg
     elif opt in ('-h', '--help'):
       print __doc__
       sys.exit()
