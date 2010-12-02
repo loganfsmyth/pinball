@@ -13,7 +13,7 @@ OBJECT world
 kids 47
 OBJECT poly
 name "paddle-r"
-loc 0.250904 0.0365903 0.73987
+loc 0.250904 0.0365903 0.772
 crease 45.000000
 numvert 264
 -0.147405 -0.0355886 0.0785174
@@ -782,7 +782,7 @@ refs 3
 kids 0
 OBJECT poly
 name "paddle-l"
-loc -0.262904 0.0365903 0.741112
+loc -0.262904 0.0365903 0.772
 crease 45.000000
 numvert 264
 0.173875 -0.0355886 0.0678613
