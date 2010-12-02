@@ -251,7 +251,7 @@ class Paddle(ACGameObject):
 
   def hitBy(self, object, surface):
     if self.__inMotion():
-      mult = 1.0
+      mult = 1.5
       object.velocity = list(self.vecAdd(object.velocity, self.vecMult(surface['norm'], mult)))
     ACGameObject.hitBy(self, object, surface)
 
@@ -298,7 +298,7 @@ class Ball(ACGameObject):
       object.hitBy(self, surface)
     else:
       # Cap the speed so it doesn't get too crazy
-      if False and speed > 1.5:
+      if False and speed > 10.5:
         self.velocity = list(self.vecMult(self.velocity, 1.5/self.vecMag(self.velocity)))
 
       # Apply some gravity
