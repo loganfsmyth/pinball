@@ -155,18 +155,19 @@ class ACObject:
     self.surfaces = data['surfaces']
     self.subobjects = []
 
-    self.__processSurfaces()
-    self.__genList()
+    self.processSurfaces()
+    self.genList()
 
-  def __processSurfaces(self):
+  def processSurfaces(self):
     """Go through the object's surfaces and calculate normals, centers and object centroid"""
-    nv = len(self.vertices)
+    vs = self.getVertices()
+    nv = len(vs)
     if nv == 0:
       return
 
     # Calculate the centroid of the object
     x = y = z = 0
-    for i,j,k in self.vertices:
+    for i,j,k in vs:
       x += i
       y += j
       z += k
@@ -177,7 +178,6 @@ class ACObject:
 
       # can only calculate normal if there are > 2 vertices
       if nv > 2:
-        vs = self.vertices
         r = s['refs']
 
         v0 = vs[r[0][0]]
@@ -193,12 +193,15 @@ class ACObject:
         # Calculate the center of the surface, used when displaying normals
         tot = (0,0,0)
         for r in s['refs']:
-          tot = self.vecAdd(self.vertices[r[0]], tot)
+          tot = self.vecAdd(vs[r[0]], tot)
         s['center'] = self.vecMult(tot, 1.0/len(s['refs']))
 
       else:
         s['norm'] = (0,0,0)
         s['center'] = (0,0,0)
+
+  def getVertices(self):
+    return self.vertices
 
   def vecNorm(self, vec):
     """Normalize a given vector"""
@@ -246,7 +249,7 @@ class ACObject:
     glBindTexture(GL_TEXTURE_2D, self.texture)
     glCallList(self.displaylist)
 
-  def __genList(self, render = False):
+  def genList(self, render = False):
     """Generate a displaylist for the object"""
 
     if not render:

@@ -29,7 +29,7 @@ class Pinball(ACGame):
     self.paddles = {}
 
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
-    self.ball.location = list(self.starting['start%d'%settings['start']].position)
+    self.ball.location = list(self.ball.vecAdd(self.starting['start%d'%settings['start']].position, settings['offset']))
     self.ball.velocity = settings['velocity']
 
     menu = glutCreateMenu(self.paddleSetKey)
@@ -38,14 +38,15 @@ class Pinball(ACGame):
     
     glutAttachMenu(GLUT_RIGHT_BUTTON)
 
-    print self.paddles
+    self.paddles['l'].key = settings['keys']['l']
+    self.paddles['r'].key = settings['keys']['r']
 
   def render(self):
     if self.viewMode == 0:
       glTranslatef(0.0, 0.0, -3.0)
       glRotated(45.0, 1.0, 0.0, 0.0)
     elif self.viewMode == 1:
-      glTranslatef(0.0, 0.0, -10.0)
+      glTranslatef(0.0, 0.0, -3.0)
       glRotated(90.0, 1.0, 0.0, 0.0)
       pass
     elif self.viewMode == 2:
@@ -92,10 +93,10 @@ class Pinball(ACGame):
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
 
-    if self.viewMode == 0 or self.viewMode == 2:
-      gluPerspective(45.0, float(w)/float(h), 0.1, 100.0)
-    elif self.viewMode == 1:
-      gluOrtho2D(0, w, 0, h)
+#    if self.viewMode == 0 or self.viewMode == 2:
+    gluPerspective(45.0, float(w)/float(h), 0.1, 100.0)
+#    elif self.viewMode == 1:
+#      gluOrtho2D(0, w, 0, h)
 
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
@@ -104,16 +105,22 @@ class Pinball(ACGame):
     if key == 'm':
       self.viewMode = (self.viewMode + 1)%3
       self.reshapeFunc(self.width, self.height)
+    elif key == ' ':
+      # Launch the ball
+      pass
 
     ACGame.keyDown(self, key, x, y)
 
   def paddleSetKey(self, type):
     if type == 1:
-# right
+      # right
+      self.paddles['r'].waiting = True
+
       pass
 
     elif type == -1:
-# left
+      # left
+      self.paddles['r'].waiting = True
       pass
 
     
@@ -124,15 +131,19 @@ class Paddle(ACGameObject):
     self.direction = -1
     self.side = dat['name'].endswith('-r') and -1 or 1
     self.max_angle = 40
+    self.key = None
+    self.waiting = False
+    self.calcVerts = []
 
     r.paddles[dat['name'][-1]] = self
 
     ACGameObject.__init__(self, dat, r)
 
-    self.calcVerts = []
-
-  def keyPress(self, dir, key, x, r):
-    if (key == 'z' and self.side == 1) or (key == '/' and self.side == -1):
+  def keyPress(self, dir, key, x, y):
+    if self.waiting:
+      self.key = key
+      self.waiting = False
+    if self.key == key:
       self.direction = -1*dir
 
   def __inMotion(self):
@@ -142,6 +153,7 @@ class Paddle(ACGameObject):
     if self.__inMotion():
       self.angle += self.direction*time.microseconds/2000.0
       self.calcVerts = []
+      self.getVertices()
 
     if self.angle < 0:
       self.angle = 0
@@ -156,13 +168,14 @@ class Paddle(ACGameObject):
   def getVertices(self):
     if not self.calcVerts:
       a = self.angle*math.pi/180
-      self.calcVerts = [(v[0]*math.cos(a) - v[2]*math.sin(a), v[1], v[2]*math.cos(a) - v[0]*math.sin(a)) for v in self.vertices]
+      self.calcVerts = [(v[0]*math.cos(a) - v[2]*math.sin(a), v[1], v[2]*math.cos(a) + v[0]*math.sin(a)) for v in self.vertices]
+      self.processSurfaces()
 
     return self.calcVerts
 
   def hitBy(self, object, surface):
     if self.__inMotion():
-      mult = 0.2
+      mult = 2.0
       object.velocity = list(self.vecAdd(object.velocity, self.vecMult(surface['norm'], mult)))
     ACGameObject.hitBy(self, object, surface)
 
@@ -183,8 +196,16 @@ class Ball(ACGameObject):
     speed = self.vecMag(self.velocity)
     # Check for collision based on current position and velocity
     (surface, object, distance) = self.getClosestSurface()
-    if object and not speed == 0.0:
+    if object :
       n = surface['norm']
+
+      print "Hit %s" % (object.name, )
+
+#      self.debug = True
+#      v = self.getClosestObjectSurface(object)
+#      print v[0]
+
+#      self.debug = False
 
       # move back along path to just before collision with surface
       mv =  0.004 + self.radius - distance
@@ -199,7 +220,8 @@ class Ball(ACGameObject):
 
       self.velocity = list(self.vecMult(new_vel, object.collisionFactor))
 
-#      print "Hit %s %s" % (object.name, object.hidden)
+
+
 
       object.hitBy(self, surface)
     else:
@@ -208,7 +230,7 @@ class Ball(ACGameObject):
         self.velocity = list(self.vecMult(self.velocity, 1.5/self.vecMag(self.velocity)))
 
       # Apply some gravity
-      self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
+      self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/700000
 
     ACGameObject.update(self, time)
 
@@ -229,6 +251,7 @@ class Ball(ACGameObject):
       if o.name == 'paddle-r':
 #        self.debug = True
 #        print "-------------------------------"
+#        print "Ball at %s" % (self.position, )
         dbg = True
 
       # Check the object first
@@ -262,7 +285,7 @@ class Ball(ACGameObject):
 
     outside = False
     for s in obj.surfaces:
-      if dbg: print "Checking %s" % (s, )
+      if dbg: print "Checking Norm: %s Center %s" % (s['norm'], s['center'])
       p1 = verts[s['refs'][0][0]]
       n = s['norm']
       # Check if the surface's normal is horizontal
@@ -351,11 +374,16 @@ if __name__ == '__main__':
     'mode': 0,
     'start': 1,
     'velocity': [0,0,-3.0],
+    'offset': [0, 0, 0],
     'debug': False,
+    'keys': {
+      'l': 'z',
+      'r': '/',
+    }
   }
 
   try:
-    opts, args = getopt.getopt(sys.argv[1:], 'm:s:v:hd', ["mode=", "start=", "vel=", "help", 'debug'])
+    opts, args = getopt.getopt(sys.argv[1:], 'm:s:v:o:hd', ["mode=", "start=", "vel=", "offset=", "help", 'debug'])
   except getopt.GetoptError:
     print __doc__
     sys.exit(2)
@@ -368,6 +396,9 @@ if __name__ == '__main__':
     elif opt in ('-v', '--vel'):
       v = arg.split(',')
       settings['velocity'] = [float(v[0]), 0, float(v[1])]
+    elif opt in ('-o', '--offset'):
+      o = arg.split(',')
+      settings['offset'] = [float(o[0]), 0, float(o[1])]
     elif opt in ('-h', '--help'):
       print __doc__
       sys.exit()

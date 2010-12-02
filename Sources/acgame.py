@@ -50,9 +50,6 @@ class ACGameObject(ACObject):
       glTranslate(0.0, -0.5, 0.0)
       self.high = False
 
-  def getVertices(self):
-    return self.vertices
-
   def hitBy(self, object, surface):
     self.renderer.addPoints(self.points)
 
