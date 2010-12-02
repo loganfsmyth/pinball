@@ -1,5 +1,16 @@
+"""OpenGL Pinball
+
+Usage: python pinball.py [options]
+
+Options:
+ -m ..., --mode=...     Run the game in a specific view mode (0 = Front angle, 1 = Top view, 2 = Ball View)
+ -s ..., --start=...    The number of the starting pad for the ball
+ -v ..., --vel=...      An initial velocity x,y
+ -h, --help             Display this meun
+ -d                     Show debug output
 """
 
+"""
 TODO:
  * Paddle collision
  * Point rendering
@@ -7,22 +18,25 @@ TODO:
 
 """
 import math
-
+import getopt
 from acgame import *
 
 class Pinball(ACGame):
-  def __init__(self):
+  def __init__(self, settings):
     self.starting = {}
     self.ball = None
+    self.viewMode = settings['mode'] # 0 = angle, 1 = top, 2 = ball view
 
     ACGame.__init__(self, 'Pinball0_5.ac', title="Pinball!!!")
+    self.ball.location = list(self.starting['start%d'%settings['start']].position)
+    self.ball.velocity = settings['velocity']
 
-    self.ball.location = list(self.starting['start'].position)
-    self.ball.velocity = [0.0, 0, -3.0]
+  def render(self):
+    if self.viewMode == 0:
+      glTranslatef(0.0, 0.0, -3.0)
+      glRotated(45.0, 1.0, 0.0, 0.0)
 
-  def render(self): 
-    glTranslatef(0.0, 0.0, -3.0)
-    glRotated(45.0, 1.0, 0.0, 0.0)
+
     ACGame.render(self)
 
   def getObjectClass(self, dat):
@@ -275,5 +289,29 @@ class StartPoint(ACGameObject):
 
 if __name__ == '__main__':
   glutInit(sys.argv)
-  Pinball().run()
+  settings = {
+    'mode': 0,
+    'start': 0,
+    'velocity': [0,0,-3.0],
+  }
+
+  try:
+    opts, args = getopt.getopt(sys.argv[1:], 'm:s:v:h', ["mode=", "start=", "vel=", "help"])
+  except getopt.GetoptError:
+    print __doc__
+    sys.exit(2)
+
+  for opt, arg in opts:
+    if opt in ('-m', '--mode'):
+      settings['mode'] = int(arg)
+    elif opt in ('-s', '--start'):
+      settings['start'] = int(arg)
+    elif opt in ('-v', '--vel'):
+      v = arg.split(',')
+      settings['velocity'] = (float(v[0]), 0, float(v[1]))
+    elif opt in ('-h', '--help'):
+      print __doc__
+      sys.exit()
+
+  Pinball(settings).run()
 

@@ -43,15 +43,7 @@ class ACRenderer:
     d = time - self.currenttime
     self.currenttime = time
     [l.update(d) for l in self.loaders]
-
-    time = datetime.datetime.now()
-    print "Update: %dus" % ((time-self.currenttime).microseconds, )
-
     self.displayFunc()
-
-    self.currenttime = datetime.datetime.now()
-    print "Display: %dus" % ((self.currenttime - time).microseconds, )
-
     glutTimerFunc(10, self.animate, 0)
 
   def createObjects(self, objs, parent=None):

@@ -38,9 +38,7 @@ class ACGameObject(ACObject):
     ACObject.__init__(self, data, r)
 
     self.points = 0
-
     self.velocity = [0, 0, 0]
-
     self.collisionFactor = 0.8
 
     if hasattr(self, 'keyPress') and hasattr(self.keyPress, '__call__'):
