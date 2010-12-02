@@ -33,11 +33,14 @@ class Pinball(ACGame):
     self.startVelocity = settings['velocity']
     self.startLocation = self.starting['start%d'%settings['start']].position
     self.startOffset = settings['offset']
+    self.launchKey = settings['keys']['fire']
 
 
     menu = glutCreateMenu(self.paddleSetKey)
     glutAddMenuEntry("Change Right Key", 1)
     glutAddMenuEntry("Change Left Key", -1)
+    glutAddMenuEntry("Change Launch Key", 2)
+
 
     glutAttachMenu(GLUT_RIGHT_BUTTON)
 
@@ -72,7 +75,7 @@ class Pinball(ACGame):
       self.roundComplete()
     else:
       self.nextBall()
- 
+
     self.ball_count -= 1
 
   def render(self):
@@ -148,9 +151,12 @@ class Pinball(ACGame):
     if key == 'm':
       self.viewMode = (self.viewMode + 1)%3
       self.reshapeFunc(self.width, self.height)
-    elif key == ' ':
+    elif key == self.launchKey:
       self.roundStart()
       pass
+
+    elif self.launchKey is None:
+      self.launchKey = key
 
     ACGame.keyDown(self, key, x, y)
 
@@ -163,10 +169,11 @@ class Pinball(ACGame):
 
     elif type == -1:
       # left
-      self.paddles['r'].waiting = True
+      self.paddles['l'].waiting = True
       pass
+    elif type == 2:
+      self.launchKey = None
 
-    
 
 class Paddle(ACGameObject):
   def __init__(self, dat, r):
@@ -407,6 +414,7 @@ if __name__ == '__main__':
     'keys': {
       'l': 'z',
       'r': '/',
+      'fire': ' ',
     }
   }
 
