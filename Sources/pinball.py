@@ -35,7 +35,18 @@ class Pinball(ACGame):
     if self.viewMode == 0:
       glTranslatef(0.0, 0.0, -3.0)
       glRotated(45.0, 1.0, 0.0, 0.0)
+    elif self.viewMode == 1:
+#      glTranslatef(0.0, 0.0, -60.0)
+#      glRotated(90.0, 1.0, 0.0, 0.0)
+      pass
+    elif self.viewMode == 2:
+      v = self.ball.velocity
+      factor = (v[2] > 0) and math.pi or 0
+      a = math.atan(v[0]/v[2]) + factor
+      glRotated(a*-180/math.pi, 0.0, 1.0, 0.0)
 
+      p = self.ball.location
+      glTranslatef(-1*p[0], -0.1, -1*p[2])
 
     ACGame.render(self)
 
@@ -60,8 +71,33 @@ class Pinball(ACGame):
 
     return ACGame.getObjectClass(self, dat)
 
-  def displayFunc(self):
-    ACGame.displayFunc(self)
+  def reshapeFunc(self, w, h):
+    """Handle the window resize event"""
+    self.width = w
+    self.height = h
+
+    if h == 0:
+      h = 1
+
+    glViewport(0, 0, w, h)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+
+    if self.viewMode == 0 or self.viewMode == 2:
+      gluPerspective(45.0, float(w)/float(h), 0.1, 10.0)
+    elif self.viewMode == 1:
+      gluOrtho2D(0, w, 0, h)
+
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
+
+  def keyDown(self, key, x, y):
+    if key == 'm':
+      self.viewMode = (self.viewMode + 1)%3
+      self.reshapeFunc(self.width, self.height)
+
+    ACGame.keyDown(self, key, x, y)
+      
 
 class Paddle(ACGameObject):
   def __init__(self, dat, r):
@@ -291,7 +327,7 @@ if __name__ == '__main__':
   glutInit(sys.argv)
   settings = {
     'mode': 0,
-    'start': 0,
+    'start': 1,
     'velocity': [0,0,-3.0],
     'debug': False,
   }
