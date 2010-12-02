@@ -8,6 +8,7 @@ Options:
  -m ..., --mode=...     Run the game in a specific view mode (0 = Front angle, 1 = Top view, 2 = Ball View)
  -s ..., --start=...    The number of the starting pad for the ball
  -v ..., --vel=...      An initial velocity x,y
+ -w, --wire             Display model as a wireframe
  -h, --help             Display this meun
  -d, --debug            Show debug output
 """
@@ -24,7 +25,7 @@ class Pinball(ACGame):
     self.paddles = {}
     self.done = True
     self.ball_count = 0
-    ACGame.__init__(self, settings['gamefile'], title="Pinball!!!")
+    ACGame.__init__(self, settings['gamefile'], title="Pinball!!!", wireframe=settings['wireframe'])
     self.startVelocity = settings['velocity']
     self.startLocation = self.starting['start%d'%settings['start']].position
     self.startOffset = settings['offset']
@@ -481,10 +482,11 @@ if __name__ == '__main__':
       'fire': ' ',
     },
     'gamefile': 'Pinball0_5.ac',
+    'wireframe': False,
   }
 
   try:
-    opts, args = getopt.getopt(sys.argv[1:], 'g:m:s:v:o:hd', ["game=", "mode=", "start=", "vel=", "offset=", "help", 'debug'])
+    opts, args = getopt.getopt(sys.argv[1:], 'g:m:s:v:o:hdw', ["game=", "mode=", "start=", "vel=", "offset=", "help", 'debug', 'wire'])
   except getopt.GetoptError:
     print __doc__
     sys.exit(2)
@@ -502,6 +504,8 @@ if __name__ == '__main__':
       settings['offset'] = [float(o[0]), 0, float(o[1])]
     elif opt in ('-g', '--game'):
       settings['gamefile'] = arg
+    elif opt in ('-w', '--wire'):
+      settings['wireframe'] = True
     elif opt in ('-h', '--help'):
       print __doc__
       sys.exit()

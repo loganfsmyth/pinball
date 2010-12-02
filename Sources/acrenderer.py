@@ -12,7 +12,7 @@ from acloader import *
 
 
 class ACRenderer:
-  def __init__(self, filename, width = 800, height = 600, title = "ACRenderer"):
+  def __init__(self, filename, width = 800, height = 600, title = "ACRenderer", wireframe = False):
 
     self.currenttime = datetime.datetime.now()
     self.fps = 0
@@ -20,6 +20,7 @@ class ACRenderer:
     glutInitWindowSize(width, height)
     glutInitWindowPosition(100, 100)
     self.window = glutCreateWindow(title)
+    self.wireframe = wireframe
 
     glutReshapeFunc(self.reshapeFunc)
     glutKeyboardFunc(self.keyDown)
@@ -261,7 +262,8 @@ class ACObject:
     verts = self.getVertices()
 
     for surface in self.surfaces:
-      glBegin(GL_POLYGON)
+      type = self.renderer.wireframe and GL_LINE_LOOP or GL_POLYGON
+      glBegin(type)
 
       # Set surface normal
       if surface.has_key('norm'):
