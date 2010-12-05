@@ -1,4 +1,4 @@
-"""OpenGL Pinball
+"""OpenGL Pinball by Logan Smyth and Danny Sarraf
 
 Usage: python pinball.py [options]
 
@@ -345,7 +345,7 @@ class Ball(ACGameObject):
     
     # Cap the speed so it doesn't get too crazy
     if speed > 3.5:
-      self.velocity = list(self.vecMult(self.velocity, 1.5/self.vecMag(self.velocity)))
+      self.velocity = list(self.vecMult(self.velocity, 2.0/self.vecMag(self.velocity)))
     # Apply some gravity
     self.velocity[2] += time.microseconds*(math.tan(7*math.pi/180)*6.0)/500000
 
@@ -392,7 +392,7 @@ class Ball(ACGameObject):
       if dbg: print "Checking Norm: %s Center %s" % (s['norm'], s['center'])
       p1 = verts[s['refs'][0][0]]
       n = s['norm']
-      # Check if the surface's normal is horizontal
+      # Ignore surface if its normal is horizontal
       if abs(n[1]) > 0.05:
         if dbg: print "Discarding, not vertical"
         continue

@@ -1,12 +1,18 @@
 
+import sys
 
-from OpenGL.GL import *
-from OpenGL.GLUT import *
-from OpenGL.GLU import *
-import Image
+try:
+  from OpenGL.GL import *
+  from OpenGL.GLUT import *
+  from OpenGL.GLU import *
+  import Image
+except ImportError, e:
+  print "Error: You need to have the python-pil and python-opengl packages installed to run this (On Ubuntu anyway)"
+  sys.exit(1)
+
+
 import datetime
 import math
-
 
 from acloader import *
 

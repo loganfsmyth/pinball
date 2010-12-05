@@ -1,6 +1,4 @@
 
-from OpenGL.GLX import *
-from ctypes import cdll
 from acrenderer import *
 
 
