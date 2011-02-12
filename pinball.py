@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """OpenGL Pinball by Logan Smyth and Danny Sarraf
 
 Usage: python pinball.py [options]
